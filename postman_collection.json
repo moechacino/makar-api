@@ -324,7 +324,21 @@
               "host": ["{{base_url}}"],
               "path": ["api", "customers", "{{customer_id}}"]
             },
-            "description": "Get customer details."
+            "description": "Get customer details by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer by Phone",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers/phone/08123456789",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers", "phone", "08123456789"]
+            },
+            "description": "Get customer details by phone number. Returns 404 if no customer found with the given number."
           },
           "response": []
         },

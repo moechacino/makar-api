@@ -21,6 +21,19 @@ export const customerController = {
     }
   },
 
+  async getByPhone(c: Context) {
+    try {
+      const data = await customerService.getByPhone(
+        getTenantId(c),
+        c.req.param("phone"),
+      );
+      return c.json({ data });
+    } catch (error: any) {
+      if (error.status) return c.json({ error: error.message }, error.status);
+      throw error;
+    }
+  },
+
   async create(c: Context) {
     const body = c.req.valid("json" as never);
 

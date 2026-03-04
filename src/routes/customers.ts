@@ -20,6 +20,7 @@ const updateCustomerSchema = z.object({
 });
 
 customerRoutes.get("/", customerController.list);
+customerRoutes.get("/phone/:phone", customerController.getByPhone);
 customerRoutes.get("/:id", customerController.getById);
 customerRoutes.post(
   "/",

@@ -37,6 +37,23 @@ export const customerService = {
     return result[0]!;
   },
 
+  async getByPhone(tenantId: string, phone: string) {
+    const result = await db
+      .select()
+      .from(customers)
+      .where(and(eq(customers.phone, phone), eq(customers.tenantId, tenantId)))
+      .limit(1);
+
+    if (result.length === 0) {
+      throw {
+        status: 404,
+        message: "Pelanggan dengan nomor telepon tersebut tidak ditemukan",
+      };
+    }
+
+    return result[0]!;
+  },
+
   async create(tenantId: string, input: CreateCustomerInput) {
     const customerId = crypto.randomUUID();
 

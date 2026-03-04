@@ -442,7 +442,7 @@ List all customers for the current tenant.
 
 #### `GET /api/customers/:id`
 
-Get customer details.
+Get customer details by ID.
 
 **Auth Required:** Yes
 
@@ -464,6 +464,41 @@ Get customer details.
 **Error Responses:**
 
 - `404` — Pelanggan tidak ditemukan
+
+---
+
+#### `GET /api/customers/phone/:phone`
+
+Get customer details by phone number.
+
+**Auth Required:** Yes
+
+**Path Parameters:**
+
+| Parameter | Type   | Description           |
+| --------- | ------ | --------------------- |
+| `phone`   | string | Customer phone number |
+
+**Example:** `GET /api/customers/phone/08123456789`
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "tenantId": "uuid",
+    "name": "PT Maju Jaya",
+    "phone": "08123456789",
+    "email": "order@majujaya.com",
+    "defaultAddress": "Jl. Sudirman No. 10, Jakarta"
+  }
+}
+```
+
+**Error Responses:**
+
+- `404` — Pelanggan dengan nomor telepon tersebut tidak ditemukan
 
 ---
 
