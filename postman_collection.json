@@ -1,0 +1,825 @@
+{
+  "info": {
+    "name": "Makar API",
+    "description": "Makar (Manajemen Katering) — Multi-tenant Catering Management API.\n\nSet the `base_url` variable to your server URL (default: http://localhost:3000).\nAfter login/register, the `token` variable is automatically set from the response.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoice_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Returns API status information."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Tenant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantName\": \"Katering Bu Sari\",\n  \"slug\": \"katering-bu-sari\",\n  \"name\": \"Sari Rahayu\",\n  \"email\": \"sari@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register-tenant",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register-tenant"]
+            },
+            "description": "Register a new catering business (creates tenant + owner user). Returns JWT token."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sari@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login and receive JWT token. Token is automatically saved to collection variable."
+          },
+          "response": []
+        }
+      ],
+      "description": "Public authentication endpoints (no auth required)."
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "description": "List all products for the current tenant."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "{{product_id}}"]
+            },
+            "description": "Get product detail. If bundle type (paket), includes bundleItems."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product (Satuan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('product_id', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nasi Box Premium\",\n  \"description\": \"Nasi box lengkap dengan lauk premium\",\n  \"category\": \"nasi-box\",\n  \"type\": \"satuan\",\n  \"cogsPrice\": 15000,\n  \"sellPrice\": 35000,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "description": "Create a new unit product (satuan). The product_id variable is auto-saved from response."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product (Paket/Bundle)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('product_id', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Paket Prasmanan A\",\n  \"description\": \"Paket prasmanan lengkap untuk acara kantor\",\n  \"category\": \"prasmanan\",\n  \"type\": \"paket\",\n  \"cogsPrice\": 50000,\n  \"sellPrice\": 120000,\n  \"isActive\": true,\n  \"bundleItems\": [\n    {\n      \"productId\": \"{{product_id}}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "description": "Create a bundle product (paket) with bundle items referencing existing unit products."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nasi Box Super Premium\",\n  \"sellPrice\": 40000,\n  \"cogsPrice\": 18000,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "{{product_id}}"]
+            },
+            "description": "Update an existing product. All fields are optional."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "{{product_id}}"]
+            },
+            "description": "Delete a product. Bundle items are also deleted if product is a paket."
+          },
+          "response": []
+        }
+      ],
+      "description": "Product management (unit items & bundles). All endpoints require auth."
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "List Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            },
+            "description": "List all customers for the current tenant."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers", "{{customer_id}}"]
+            },
+            "description": "Get customer details."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('customer_id', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PT Maju Jaya\",\n  \"phone\": \"08123456789\",\n  \"email\": \"order@majujaya.com\",\n  \"defaultAddress\": \"Jl. Sudirman No. 10, Jakarta Pusat\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            },
+            "description": "Create a new customer. The customer_id variable is auto-saved from response."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PT Maju Jaya Sejahtera\",\n  \"phone\": \"08198765432\",\n  \"defaultAddress\": \"Jl. Gatot Subroto No. 5, Jakarta Selatan\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers", "{{customer_id}}"]
+            },
+            "description": "Update a customer. All fields are optional."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Customer",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers", "{{customer_id}}"]
+            },
+            "description": "Delete a customer."
+          },
+          "response": []
+        }
+      ],
+      "description": "Customer contact book. All endpoints require auth."
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "List Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "List all orders for the current tenant, sorted by newest first."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Get order detail including items and customer info."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('order_id', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"eventDate\": \"2026-03-15\",\n  \"deliveryAddress\": \"Jl. Sudirman No. 10, Jakarta Pusat\",\n  \"shippingFee\": 25000,\n  \"tax\": 0,\n  \"paymentType\": \"full\",\n  \"items\": [\n    {\n      \"productId\": \"{{product_id}}\",\n      \"quantity\": 10\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Create a new order. Order ID is auto-generated (ORD-YYYYMMDD-NNN). Prices are captured at order time. The order_id variable is auto-saved from response."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order (Termin/DP)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('order_id', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"eventDate\": \"2026-03-20\",\n  \"deliveryAddress\": \"Jl. Gatot Subroto No. 5, Jakarta Selatan\",\n  \"shippingFee\": 30000,\n  \"tax\": 5000,\n  \"paymentType\": \"termin\",\n  \"items\": [\n    {\n      \"productId\": \"{{product_id}}\",\n      \"quantity\": 20\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Create an order with termin (installment) payment type. Allows generating DP and pelunasan invoices separately."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventDate\": \"2026-03-18\",\n  \"deliveryAddress\": \"Jl. Thamrin No. 20, Jakarta Pusat\",\n  \"shippingFee\": 30000,\n  \"status\": \"processing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Update an order. Recalculates totalAmount if shippingFee or tax changes.\n\nStatus flow: draft → waiting_dp → processing → delivered → waiting_payment → completed / cancelled"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Delete an order. Only orders with status 'draft' can be deleted."
+          },
+          "response": []
+        }
+      ],
+      "description": "Order lifecycle management. All endpoints require auth."
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "List Invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/invoices",
+              "host": ["{{base_url}}"],
+              "path": ["api", "invoices"]
+            },
+            "description": "List all invoices for the current tenant."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Invoice by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/invoices/{{invoice_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "invoices", "{{invoice_id}}"]
+            },
+            "description": "Get invoice details including Mayar payment link."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Invoice (Full Payment)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('invoice_id', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"full\",\n  \"redirectUrl\": \"https://myapp.com/payment-success\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/invoices/order/{{order_id}}/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "invoices", "order", "{{order_id}}", "generate"]
+            },
+            "description": "Generate a full payment invoice for an order. Creates a Mayar payment link. Order status changes to waiting_payment."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Invoice (DP)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('invoice_id', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"dp\",\n  \"amount\": 200000,\n  \"redirectUrl\": \"https://myapp.com/payment-success\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/invoices/order/{{order_id}}/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "invoices", "order", "{{order_id}}", "generate"]
+            },
+            "description": "Generate a down payment (DP) invoice with custom amount. Order status changes to waiting_dp."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Invoice (Pelunasan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('invoice_id', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"pelunasan\",\n  \"amount\": 175000,\n  \"redirectUrl\": \"https://myapp.com/payment-success\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/invoices/order/{{order_id}}/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "invoices", "order", "{{order_id}}", "generate"]
+            },
+            "description": "Generate a final settlement (pelunasan) invoice with remaining amount. Order status changes to waiting_payment."
+          },
+          "response": []
+        }
+      ],
+      "description": "Invoice generation with Mayar.id payment gateway. All endpoints require auth."
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Get Balance & Mutations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/wallet",
+              "host": ["{{base_url}}"],
+              "path": ["api", "wallet"]
+            },
+            "description": "Get current tenant balance and wallet mutation history (credits & debits)."
+          },
+          "response": []
+        },
+        {
+          "name": "Request Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 200000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/wallet/withdraw",
+              "host": ["{{base_url}}"],
+              "path": ["api", "wallet", "withdraw"]
+            },
+            "description": "Request a fund withdrawal from tenant wallet. Minimum Rp 10,000. Uses ACID transaction with row locking. Balance is immediately deducted."
+          },
+          "response": []
+        },
+        {
+          "name": "List Withdrawals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/wallet/withdrawals",
+              "host": ["{{base_url}}"],
+              "path": ["api", "wallet", "withdrawals"]
+            },
+            "description": "List withdrawal request history, sorted by newest first. Statuses: pending, processing, completed, failed."
+          },
+          "response": []
+        }
+      ],
+      "description": "Internal tenant wallet management. All endpoints require auth."
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Mayar Payment Webhook",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-webhook-token",
+                "value": "your-mayar-webhook-token",
+                "description": "Webhook token from Mayar dashboard"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"payment.received\",\n  \"data\": {\n    \"id\": \"9356ec92-32ae-4d99-a1a7-51b11dff4d84\",\n    \"transactionId\": \"9356ec92-32ae-4d99-a1a7-51b11dff4d84\",\n    \"status\": \"SUCCESS\",\n    \"transactionStatus\": \"created\",\n    \"createdAt\": 1693817623264,\n    \"updatedAt\": 1693817626638,\n    \"merchantId\": \"348e083d-315a-4e5c-96b1-5a2a98c48413\",\n    \"merchantName\": \"Katering Bu Sari\",\n    \"merchantEmail\": \"sari@example.com\",\n    \"customerName\": \"PT Maju Jaya\",\n    \"customerEmail\": \"order@majujaya.com\",\n    \"customerMobile\": \"08123456789\",\n    \"amount\": 375000,\n    \"isAdminFeeBorneByCustomer\": true,\n    \"isChannelFeeBorneByCustomer\": true,\n    \"productId\": \"e2b3f5d5-0c62-47ba-8a01-6c1c209e0f77\",\n    \"productName\": \"Invoice Order\",\n    \"productType\": \"invoice\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/mayar",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "mayar"]
+            },
+            "description": "Receive payment notification from Mayar.id. No auth required (called externally by Mayar).\n\nVerifies x-webhook-token header. Processes payment.received + SUCCESS events via ACID transaction:\n1. Update invoice → paid\n2. Update order status\n3. Credit tenant wallet (minus platform fee)\n4. Record wallet mutation"
+          },
+          "response": []
+        }
+      ],
+      "description": "External webhook callbacks from payment providers. No auth required."
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Kitchen Recap",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reports/kitchen-recap?startDate=2026-03-01&endDate=2026-03-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reports", "kitchen-recap"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2026-03-01",
+                  "description": "Period start date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-03-31",
+                  "description": "Period end date (YYYY-MM-DD)"
+                }
+              ]
+            },
+            "description": "Smart Kitchen Recap — Production report that breaks down all ordered items (including bundles/paket) into per-unit product quantities.\n\nBundle decomposition: if Paket A contains 2x Nasi Goreng + 1x Ayam Bakar, and customer orders 10x Paket A → Nasi Goreng = 20, Ayam Bakar = 10.\n\nExcludes draft and cancelled orders. Sorted by totalQuantity descending."
+          },
+          "response": []
+        }
+      ],
+      "description": "Business reports. All endpoints require auth."
+    }
+  ]
+}

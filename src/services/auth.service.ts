@@ -26,7 +26,10 @@ export const authService = {
       .limit(1);
 
     if (existingTenant.length > 0) {
-      throw { status: 409, message: "Slug sudah digunakan" };
+      throw {
+        status: 409,
+        message: `Identitas toko (${input.slug}) sudah digunakan.\n Gunakan nama toko yang berbeda atau tambahkan nama kota di belakang nama toko anda.`,
+      };
     }
 
     // Check if email already taken
