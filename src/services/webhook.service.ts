@@ -21,7 +21,10 @@ export const webhookService = {
     }
 
     // Only process successful payment events
-    if (webhookEvent !== "payment.received" && webhookData.status !== "paid") {
+    if (
+      webhookEvent !== "payment.received" ||
+      webhookData.status !== "SUCCESS"
+    ) {
       return { ignored: true, message: "Event ignored" };
     }
 

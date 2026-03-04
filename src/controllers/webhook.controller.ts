@@ -1,9 +1,16 @@
 import type { Context } from "hono";
 import { webhookService } from "../services/webhook.service";
+import { env } from "../config/env";
 
 export const webhookController = {
   async handleMayar(c: Context) {
     try {
+      // Verify webhook token from Mayar
+      const webhookToken = c.req.header("x-webhook-token");
+      if (env.MAYAR_WEBHOOK_TOKEN && webhookToken !== env.MAYAR_WEBHOOK_TOKEN) {
+        return c.json({ error: "Invalid webhook token" }, 401);
+      }
+
       const body = await c.req.json();
       const result = await webhookService.processMayarPayment(body);
 

@@ -12,6 +12,7 @@ export const env = {
 
   MAYAR_API_KEY: getEnvVar("MAYAR_API_KEY", ""),
   MAYAR_BASE_URL: getEnvVar("MAYAR_BASE_URL", "https://api.mayar.club/hl/v1"),
+  MAYAR_WEBHOOK_TOKEN: getEnvVar("MAYAR_WEBHOOK_TOKEN", ""),
 
   PLATFORM_FEE: Number(process.env.PLATFORM_FEE) || 2000,
 
