@@ -1,0 +1,30 @@
+{
+  "name": "makar-api",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts",
+    "db:generate": "bun x drizzle-kit generate",
+    "db:push": "bun x drizzle-kit push",
+    "db:studio": "bun x drizzle-kit studio"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.31.9"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.7.6",
+    "@paralleldrive/cuid2": "^3.3.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.12.4",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.18.2",
+    "zod": "^4.3.6"
+  }
+}
