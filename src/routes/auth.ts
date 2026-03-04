@@ -12,12 +12,12 @@ const registerSchema = z.object({
     .min(3)
     .regex(/^[a-z0-9-]+$/, "Slug hanya boleh huruf kecil, angka, dan strip"),
   name: z.string().min(2, "Nama minimal 2 karakter"),
-  email: z.string().email("Email tidak valid"),
+  email: z.email("Email tidak valid"),
   password: z.string().min(6, "Password minimal 6 karakter"),
 });
 
 const loginSchema = z.object({
-  email: z.string().email("Email tidak valid"),
+  email: z.email("Email tidak valid"),
   password: z.string().min(1, "Password wajib diisi"),
 });
 
