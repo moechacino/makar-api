@@ -7,14 +7,14 @@ const customerRoutes = new Hono();
 
 const createCustomerSchema = z.object({
   name: z.string().min(1, "Nama pelanggan wajib diisi"),
-  phone: z.string().optional(),
+  phone: z.string().min(1, "Nomor telepon wajib diisi"),
   email: z.email().optional(),
   defaultAddress: z.string().optional(),
 });
 
 const updateCustomerSchema = z.object({
   name: z.string().min(1).optional(),
-  phone: z.string().optional(),
+  phone: z.string().min(1, "Nomor telepon tidak boleh kosong").optional(),
   email: z.email().optional(),
   defaultAddress: z.string().optional(),
 });

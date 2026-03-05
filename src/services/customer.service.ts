@@ -88,7 +88,7 @@ export const customerService = {
 
     const updateData: Record<string, any> = { updatedAt: new Date() };
     if (input.name !== undefined) updateData.name = input.name;
-    if (input.phone !== undefined) updateData.phone = input.phone;
+    if (!input.phone) updateData.phone = input.phone;
     if (input.email !== undefined) updateData.email = input.email;
     if (input.defaultAddress !== undefined)
       updateData.defaultAddress = input.defaultAddress;
