@@ -27,7 +27,7 @@ export const reportService = {
           eq(orders.tenantId, tenantId),
           gte(orders.eventDate, start),
           lte(orders.eventDate, end),
-          sql`${orders.status} NOT IN ('draft', 'cancelled')`,
+          sql`${orders.status} IN ('processing')`,
         ),
       );
 
