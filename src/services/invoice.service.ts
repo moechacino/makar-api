@@ -66,12 +66,69 @@ export const invoiceService = {
 
     const customer = customerResult[0]!;
 
-    // Determine amount
+    // Get total already paid from existing invoices
+    const existingInvoices = await db
+      .select({ amount: invoices.amount, status: invoices.status })
+      .from(invoices)
+      .where(eq(invoices.orderId, orderId));
+
+    const totalPaid = existingInvoices
+      .filter((inv) => inv.status === "paid")
+      .reduce((sum, inv) => sum + inv.amount, 0);
+
+    const totalPending = existingInvoices
+      .filter((inv) => inv.status === "unpaid")
+      .reduce((sum, inv) => sum + inv.amount, 0);
+
+    const remainingAmount = order.totalAmount - totalPaid - totalPending;
+
+    // Determine and validate amount
     let invoiceAmount: number;
-    if (input.amount && input.type !== "full") {
+
+    if (input.type === "full") {
+      if (totalPaid > 0 || totalPending > 0) {
+        throw {
+          status: 400,
+          message:
+            "Tidak bisa membuat invoice full karena sudah ada invoice sebelumnya",
+        };
+      }
+      invoiceAmount = order.totalAmount;
+    } else if (input.type === "dp") {
+      if (!input.amount) {
+        throw {
+          status: 400,
+          message: "Jumlah DP wajib diisi",
+        };
+      }
+      if (input.amount <= 0) {
+        throw {
+          status: 400,
+          message: "Jumlah DP harus lebih dari 0",
+        };
+      }
+      if (input.amount >= order.totalAmount) {
+        throw {
+          status: 400,
+          message: `Jumlah DP harus kurang dari total pesanan (Rp ${order.totalAmount.toLocaleString("id-ID")})`,
+        };
+      }
+      if (input.amount > remainingAmount) {
+        throw {
+          status: 400,
+          message: `Jumlah DP melebihi sisa yang belum dibayar (Rp ${remainingAmount.toLocaleString("id-ID")})`,
+        };
+      }
       invoiceAmount = input.amount;
     } else {
-      invoiceAmount = order.totalAmount;
+      // pelunasan — auto-calculate remaining
+      if (remainingAmount <= 0) {
+        throw {
+          status: 400,
+          message: "Tidak ada sisa pembayaran. Pesanan sudah lunas.",
+        };
+      }
+      invoiceAmount = remainingAmount;
     }
 
     const platformFee = env.PLATFORM_FEE;
