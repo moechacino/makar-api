@@ -7,11 +7,14 @@ export const webhookController = {
     try {
       // Verify webhook token from Mayar
       const webhookToken = c.req.header("x-webhook-token");
+      console.log("Received Mayar webhook with token:", webhookToken);
       if (env.MAYAR_WEBHOOK_TOKEN && webhookToken !== env.MAYAR_WEBHOOK_TOKEN) {
         return c.json({ error: "Invalid webhook token" }, 401);
       }
 
       const body = await c.req.json();
+      console.log("Processing Mayar webhook with body:");
+      console.dir(body, { depth: null });
       const result = await webhookService.processMayarPayment(body);
 
       if ("ignored" in result) {
