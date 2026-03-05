@@ -1078,6 +1078,73 @@ List withdrawal request history, sorted by newest first.
 
 External callback endpoints called by payment providers.
 
+---
+
+### Public
+
+Customer-facing endpoints. No authentication required.
+
+#### `GET /api/public/orders/:orderId`
+
+Get order details with customer info, items, invoices (with payment links), and payment summary. Designed for frontend integration to show customers their order and payment status.
+
+**Auth Required:** No
+
+**Path Parameters:**
+
+| Parameter | Type   | Description                        |
+| --------- | ------ | ---------------------------------- |
+| `orderId` | string | Order ID (e.g. `ORD-20260305-001`) |
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "ORD-20260305-001",
+    "eventDate": "2026-03-15T00:00:00.000Z",
+    "deliveryAddress": "Jl. Sudirman No. 10, Jakarta Pusat",
+    "subtotal": 350000,
+    "shippingFee": 25000,
+    "tax": 0,
+    "totalAmount": 375000,
+    "paymentType": "termin",
+    "status": "waiting_dp",
+    "createdAt": "2026-03-05T10:00:00.000Z",
+    "customer": {
+      "name": "PT Maju Jaya",
+      "phone": "08123456789",
+      "email": "order@majujaya.com"
+    },
+    "items": [
+      {
+        "productName": "Nasi Box Premium",
+        "quantity": 10,
+        "priceAtTime": 35000
+      }
+    ],
+    "invoices": [
+      {
+        "id": "uuid",
+        "type": "dp",
+        "amount": 200000,
+        "status": "unpaid",
+        "paymentLink": "https://app.mayar.id/pay/...",
+        "createdAt": "2026-03-05T10:05:00.000Z"
+      }
+    ],
+    "totalPaid": 0,
+    "remainingAmount": 375000
+  }
+}
+```
+
+**Error Responses:**
+
+- `404` — Pesanan tidak ditemukan
+
+---
+
 #### `POST /api/webhooks/mayar`
 
 Receive payment notification from Mayar.id. Verifies the webhook token and processes successful payments using an ACID transaction.

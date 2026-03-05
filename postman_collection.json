@@ -834,6 +834,29 @@
         }
       ],
       "description": "Business reports. All endpoints require auth."
+    },
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Get Order Detail (Public)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/public/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "public", "orders", "{{order_id}}"]
+            },
+            "description": "Public endpoint for customers to view order details, items, invoices with payment links, and payment status. No authentication required.\n\nResponse includes:\n- Order details (status, amounts, dates)\n- Customer info (name, phone, email)\n- Order items (product name, quantity, price)\n- Invoices with payment links and status\n- totalPaid and remainingAmount summary"
+          },
+          "response": []
+        }
+      ],
+      "description": "Public customer-facing endpoints. No auth required."
     }
   ]
 }

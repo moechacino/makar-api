@@ -42,6 +42,10 @@ app.route("/api/auth", authRoutes);
 // Webhook - no auth (called by Mayar externally)
 app.route("/api/webhooks", webhookRoutes);
 
+// Public routes - no auth (customer-facing)
+import publicRoutes from "./routes/public";
+app.route("/api/public", publicRoutes);
+
 // ============================================================
 // Protected Routes (Auth Required - Tenant Isolated)
 // ============================================================

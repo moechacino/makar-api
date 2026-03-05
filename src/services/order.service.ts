@@ -1,5 +1,11 @@
 import { db } from "../db";
-import { orders, orderItems, products, customers } from "../db/schema";
+import {
+  orders,
+  orderItems,
+  products,
+  customers,
+  invoices,
+} from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 interface CreateOrderInput {
@@ -248,5 +254,78 @@ export const orderService = {
     await db
       .delete(orders)
       .where(and(eq(orders.id, orderId), eq(orders.tenantId, tenantId)));
+  },
+
+  async getPublicDetail(orderId: string) {
+    const orderResult = await db
+      .select({
+        id: orders.id,
+        eventDate: orders.eventDate,
+        deliveryAddress: orders.deliveryAddress,
+        subtotal: orders.subtotal,
+        shippingFee: orders.shippingFee,
+        tax: orders.tax,
+        totalAmount: orders.totalAmount,
+        paymentType: orders.paymentType,
+        status: orders.status,
+        createdAt: orders.createdAt,
+      })
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+
+    if (orderResult.length === 0) {
+      throw { status: 404, message: "Pesanan tidak ditemukan" };
+    }
+
+    const order = orderResult[0]!;
+
+    const customer = await db
+      .select({
+        name: customers.name,
+        phone: customers.phone,
+        email: customers.email,
+      })
+      .from(customers)
+      .innerJoin(orders, eq(orders.customerId, customers.id))
+      .where(eq(orders.id, orderId))
+      .limit(1);
+
+    const items = await db
+      .select({
+        productName: products.name,
+        quantity: orderItems.quantity,
+        priceAtTime: orderItems.priceAtTime,
+      })
+      .from(orderItems)
+      .innerJoin(products, eq(orderItems.productId, products.id))
+      .where(eq(orderItems.orderId, orderId));
+
+    const orderInvoices = await db
+      .select({
+        id: invoices.id,
+        type: invoices.type,
+        amount: invoices.amount,
+        status: invoices.status,
+        paymentLink: invoices.mayarPaymentLink,
+        createdAt: invoices.createdAt,
+      })
+      .from(invoices)
+      .where(eq(invoices.orderId, orderId));
+
+    const totalPaid = orderInvoices
+      .filter((inv) => inv.status === "paid")
+      .reduce((sum, inv) => sum + inv.amount, 0);
+
+    const remainingAmount = order.totalAmount - totalPaid;
+
+    return {
+      ...order,
+      customer: customer[0] ?? null,
+      items,
+      invoices: orderInvoices,
+      totalPaid,
+      remainingAmount,
+    };
   },
 };
