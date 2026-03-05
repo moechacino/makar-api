@@ -25,7 +25,46 @@ interface UpdateProductInput {
 
 export const productService = {
   async list(tenantId: string) {
-    return db.select().from(products).where(eq(products.tenantId, tenantId));
+    const allProducts = await db
+      .select()
+      .from(products)
+      .where(eq(products.tenantId, tenantId));
+
+    const paketIds = allProducts
+      .filter((p) => p.type === "paket")
+      .map((p) => p.id);
+
+    let bundleMap = new Map<string, any[]>();
+    if (paketIds.length > 0) {
+      const allBundleItems = await db
+        .select({
+          packageId: bundleItems.packageId,
+          id: bundleItems.id,
+          productId: bundleItems.productId,
+          quantity: bundleItems.quantity,
+          productName: products.name,
+          productSellPrice: products.sellPrice,
+        })
+        .from(bundleItems)
+        .innerJoin(products, eq(bundleItems.productId, products.id));
+
+      for (const item of allBundleItems) {
+        const existing = bundleMap.get(item.packageId) ?? [];
+        existing.push({
+          id: item.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          productName: item.productName,
+          productSellPrice: item.productSellPrice,
+        });
+        bundleMap.set(item.packageId, existing);
+      }
+    }
+
+    return allProducts.map((p) => ({
+      ...p,
+      bundleItems: bundleMap.get(p.id) ?? [],
+    }));
   },
 
   async getById(tenantId: string, productId: string) {
