@@ -5,7 +5,14 @@ const publicRoutes = new Hono();
 
 publicRoutes.get("/orders/:orderId", async (c) => {
   try {
-    const data = await orderService.getPublicDetail(c.req.param("orderId"));
+    const token = c.req.query("token");
+    if (!token) {
+      return c.json({ error: "Token akses diperlukan" }, 400);
+    }
+    const data = await orderService.getPublicDetail(
+      c.req.param("orderId"),
+      token,
+    );
     return c.json({ data });
   } catch (error: any) {
     if (error.status) return c.json({ error: error.message }, error.status);

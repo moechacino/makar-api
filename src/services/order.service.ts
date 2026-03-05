@@ -164,9 +164,11 @@ export const orderService = {
 
     const totalAmount = subtotal + input.shippingFee + input.tax;
     const orderId = await generateOrderId();
+    const accessToken = crypto.randomUUID().replace(/-/g, "");
 
     await db.insert(orders).values({
       id: orderId,
+      accessToken,
       tenantId,
       customerId: input.customerId,
       eventDate: input.eventDate ? new Date(input.eventDate) : null,
@@ -190,6 +192,7 @@ export const orderService = {
 
     return {
       id: orderId,
+      accessToken,
       subtotal,
       shippingFee: input.shippingFee,
       tax: input.tax,
@@ -256,10 +259,11 @@ export const orderService = {
       .where(and(eq(orders.id, orderId), eq(orders.tenantId, tenantId)));
   },
 
-  async getPublicDetail(orderId: string) {
+  async getPublicDetail(orderId: string, accessToken: string) {
     const orderResult = await db
       .select({
         id: orders.id,
+        accessToken: orders.accessToken,
         eventDate: orders.eventDate,
         deliveryAddress: orders.deliveryAddress,
         subtotal: orders.subtotal,
@@ -279,6 +283,10 @@ export const orderService = {
     }
 
     const order = orderResult[0]!;
+
+    if (order.accessToken !== accessToken) {
+      throw { status: 404, message: "Pesanan tidak ditemukan" };
+    }
 
     const customer = await db
       .select({
@@ -321,6 +329,7 @@ export const orderService = {
 
     return {
       ...order,
+      accessToken: undefined,
       customer: customer[0] ?? null,
       items,
       invoices: orderInvoices,

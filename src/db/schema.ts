@@ -122,6 +122,7 @@ export const bundleItems = mysqlTable("bundle_items", {
 // ============================================================
 export const orders = mysqlTable("orders", {
   id: varchar("id", { length: 128 }).primaryKey(), // Format: ORD-20231020-001
+  accessToken: varchar("access_token", { length: 64 }).notNull(),
   tenantId: varchar("tenant_id", { length: 128 })
     .notNull()
     .references(() => tenants.id),

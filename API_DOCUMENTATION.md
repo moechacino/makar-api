@@ -1084,9 +1084,9 @@ External callback endpoints called by payment providers.
 
 Customer-facing endpoints. No authentication required.
 
-#### `GET /api/public/orders/:orderId`
+#### `GET /api/public/orders/:orderId?token=ACCESS_TOKEN`
 
-Get order details with customer info, items, invoices (with payment links), and payment summary. Designed for frontend integration to show customers their order and payment status.
+Get order details with customer info, items, invoices (with payment links), and payment summary. Requires an access token that is returned when the order is created.
 
 **Auth Required:** No
 
@@ -1095,6 +1095,12 @@ Get order details with customer info, items, invoices (with payment links), and 
 | Parameter | Type   | Description                        |
 | --------- | ------ | ---------------------------------- |
 | `orderId` | string | Order ID (e.g. `ORD-20260305-001`) |
+
+**Query Parameters:**
+
+| Parameter | Type   | Required | Description                               |
+| --------- | ------ | -------- | ----------------------------------------- |
+| `token`   | string | Yes      | Access token (returned on order creation) |
 
 **Response `200`:**
 
