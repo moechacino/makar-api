@@ -1,6 +1,6 @@
 import { db, pool } from "../db";
 import { tenants, walletMutations, withdrawals } from "../db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 export const walletService = {
   async getBalanceAndMutations(tenantId: string) {
@@ -14,6 +14,22 @@ export const walletService = {
       throw { status: 404, message: "Tenant tidak ditemukan" };
     }
 
+    const pendingResult = await db
+      .select({
+        total: sql<number>`COALESCE(SUM(${withdrawals.amount}), 0)`,
+      })
+      .from(withdrawals)
+      .where(
+        and(
+          eq(withdrawals.tenantId, tenantId),
+          sql`${withdrawals.status} IN ('pending', 'processing')`,
+        ),
+      );
+
+    const balance = tenantResult[0]!.balance;
+    const pendingWithdrawals = Number(pendingResult[0]!.total);
+    const availableBalance = balance - pendingWithdrawals;
+
     const mutations = await db
       .select()
       .from(walletMutations)
@@ -21,7 +37,9 @@ export const walletService = {
       .orderBy(sql`${walletMutations.createdAt} DESC`);
 
     return {
-      balance: tenantResult[0]!.balance,
+      balance,
+      pendingWithdrawals,
+      availableBalance,
       mutations,
     };
   },
