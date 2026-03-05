@@ -20,7 +20,7 @@ interface UpdateOrderInput {
   status?: string;
 }
 
-async function generateOrderId(tenantId: string): Promise<string> {
+async function generateOrderId(): Promise<string> {
   const today = new Date();
   const dateStr =
     today.getFullYear().toString() +
@@ -30,17 +30,19 @@ async function generateOrderId(tenantId: string): Promise<string> {
   const prefix = `ORD-${dateStr}-`;
 
   const existing = await db
-    .select({ count: sql<number>`COUNT(*)` })
+    .select({ id: orders.id })
     .from(orders)
-    .where(
-      and(
-        eq(orders.tenantId, tenantId),
-        sql`${orders.id} LIKE ${prefix + "%"}`,
-      ),
-    );
+    .where(sql`${orders.id} LIKE ${prefix + "%"}`)
+    .orderBy(sql`${orders.id} DESC`)
+    .limit(1);
 
-  const count = Number(existing[0]?.count ?? 0) + 1;
-  return `${prefix}${String(count).padStart(3, "0")}`;
+  let seq = 1;
+  if (existing.length > 0) {
+    const lastSeq = parseInt(existing[0]!.id.slice(prefix.length), 10);
+    seq = (isNaN(lastSeq) ? 0 : lastSeq) + 1;
+  }
+
+  return `${prefix}${String(seq).padStart(3, "0")}`;
 }
 
 export const orderService = {
@@ -155,7 +157,7 @@ export const orderService = {
     });
 
     const totalAmount = subtotal + input.shippingFee + input.tax;
-    const orderId = await generateOrderId(tenantId);
+    const orderId = await generateOrderId();
 
     await db.insert(orders).values({
       id: orderId,
