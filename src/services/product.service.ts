@@ -1,6 +1,6 @@
 import { db } from "../db";
-import { products, bundleItems } from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { products, bundleItems, orderItems } from "../db/schema";
+import { eq, and, count } from "drizzle-orm";
 
 interface CreateProductInput {
   name: string;
@@ -136,6 +136,39 @@ export const productService = {
       throw { status: 404, message: "Produk tidak ditemukan" };
     }
 
+    // Check if product is used in any order
+    const usedInOrders = await db
+      .select({ total: count() })
+      .from(orderItems)
+      .where(eq(orderItems.productId, productId));
+
+    if (usedInOrders[0]!.total > 0) {
+      throw {
+        status: 400,
+        message:
+          "Produk tidak bisa dihapus karena sudah digunakan dalam pesanan. Nonaktifkan produk sebagai gantinya.",
+      };
+    }
+
+    // Check if product is used as a child item in any bundle
+    const usedInBundles = await db
+      .select({
+        packageId: bundleItems.packageId,
+        packageName: products.name,
+      })
+      .from(bundleItems)
+      .innerJoin(products, eq(bundleItems.packageId, products.id))
+      .where(eq(bundleItems.productId, productId));
+
+    if (usedInBundles.length > 0) {
+      const packageNames = usedInBundles.map((b) => b.packageName).join(", ");
+      throw {
+        status: 400,
+        message: `Produk tidak bisa dihapus karena masih digunakan dalam paket: ${packageNames}. Hapus produk dari paket tersebut terlebih dahulu.`,
+      };
+    }
+
+    // Delete bundle_items where this product is the package
     if (existing[0]!.type === "paket") {
       await db.delete(bundleItems).where(eq(bundleItems.packageId, productId));
     }
