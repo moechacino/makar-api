@@ -69,8 +69,8 @@ export const productService = {
       description: input.description ?? null,
       category: input.category ?? null,
       type: input.type,
-      cogsPrice: String(input.cogsPrice),
-      sellPrice: String(input.sellPrice),
+      cogsPrice: input.cogsPrice,
+      sellPrice: input.sellPrice,
       isActive: input.isActive,
     });
 
@@ -102,10 +102,8 @@ export const productService = {
     if (input.description !== undefined)
       updateData.description = input.description;
     if (input.category !== undefined) updateData.category = input.category;
-    if (input.cogsPrice !== undefined)
-      updateData.cogsPrice = String(input.cogsPrice);
-    if (input.sellPrice !== undefined)
-      updateData.sellPrice = String(input.sellPrice);
+    if (input.cogsPrice !== undefined) updateData.cogsPrice = input.cogsPrice;
+    if (input.sellPrice !== undefined) updateData.sellPrice = input.sellPrice;
     if (input.isActive !== undefined) updateData.isActive = input.isActive;
 
     await db

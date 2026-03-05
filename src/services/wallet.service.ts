@@ -21,7 +21,7 @@ export const walletService = {
       .orderBy(sql`${walletMutations.createdAt} DESC`);
 
     return {
-      balance: Number(tenantResult[0]!.balance),
+      balance: tenantResult[0]!.balance,
       mutations,
     };
   },

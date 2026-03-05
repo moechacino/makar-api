@@ -78,8 +78,8 @@ export const webhookService = {
       );
 
       // 3. Calculate net amount and credit tenant
-      const invoiceAmount = Number(invoice.amount);
-      const platformFee = Number(invoice.platformFee);
+      const invoiceAmount = invoice.amount;
+      const platformFee = invoice.platformFee;
       const netAmount = invoiceAmount - platformFee;
 
       await connection.query(

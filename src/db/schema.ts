@@ -3,7 +3,6 @@ import {
   varchar,
   text,
   datetime,
-  decimal,
   boolean,
   int,
   mysqlEnum,
@@ -24,9 +23,7 @@ export const tenants = mysqlTable("tenants", {
   bankCode: varchar("bank_code", { length: 50 }),
   bankAccountNumber: varchar("bank_account_number", { length: 50 }),
   bankAccountName: varchar("bank_account_name", { length: 255 }),
-  balance: decimal("balance", { precision: 15, scale: 2 })
-    .notNull()
-    .default("0"),
+  balance: int("balance").notNull().default(0),
   createdAt: datetime("created_at")
     .notNull()
     .$defaultFn(() => new Date()),
@@ -93,12 +90,8 @@ export const products = mysqlTable("products", {
   description: text("description"),
   category: varchar("category", { length: 100 }),
   type: mysqlEnum("type", ["satuan", "paket"]).notNull().default("satuan"),
-  cogsPrice: decimal("cogs_price", { precision: 15, scale: 2 })
-    .notNull()
-    .default("0"),
-  sellPrice: decimal("sell_price", { precision: 15, scale: 2 })
-    .notNull()
-    .default("0"),
+  cogsPrice: int("cogs_price").notNull().default(0),
+  sellPrice: int("sell_price").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: datetime("created_at")
     .notNull()
@@ -137,16 +130,10 @@ export const orders = mysqlTable("orders", {
     .references(() => customers.id),
   eventDate: datetime("event_date"),
   deliveryAddress: text("delivery_address"),
-  subtotal: decimal("subtotal", { precision: 15, scale: 2 })
-    .notNull()
-    .default("0"),
-  shippingFee: decimal("shipping_fee", { precision: 15, scale: 2 })
-    .notNull()
-    .default("0"),
-  tax: decimal("tax", { precision: 15, scale: 2 }).notNull().default("0"),
-  totalAmount: decimal("total_amount", { precision: 15, scale: 2 })
-    .notNull()
-    .default("0"),
+  subtotal: int("subtotal").notNull().default(0),
+  shippingFee: int("shipping_fee").notNull().default(0),
+  tax: int("tax").notNull().default(0),
+  totalAmount: int("total_amount").notNull().default(0),
   paymentType: mysqlEnum("payment_type", ["full", "termin"])
     .notNull()
     .default("full"),
@@ -183,9 +170,7 @@ export const orderItems = mysqlTable("order_items", {
     .notNull()
     .references(() => products.id),
   quantity: int("quantity").notNull().default(1),
-  priceAtTime: decimal("price_at_time", { precision: 15, scale: 2 })
-    .notNull()
-    .default("0"),
+  priceAtTime: int("price_at_time").notNull().default(0),
 });
 
 // ============================================================
@@ -204,10 +189,8 @@ export const invoices = mysqlTable("invoices", {
   type: mysqlEnum("type", ["dp", "pelunasan", "full"])
     .notNull()
     .default("full"),
-  amount: decimal("amount", { precision: 15, scale: 2 }).notNull().default("0"),
-  platformFee: decimal("platform_fee", { precision: 15, scale: 2 })
-    .notNull()
-    .default("0"),
+  amount: int("amount").notNull().default(0),
+  platformFee: int("platform_fee").notNull().default(0),
   mayarPaymentLink: varchar("mayar_payment_link", { length: 500 }),
   mayarTransactionId: varchar("mayar_transaction_id", { length: 255 }),
   mayarInvoiceId: varchar("mayar_invoice_id", { length: 255 }),
@@ -233,7 +216,7 @@ export const walletMutations = mysqlTable("wallet_mutations", {
     .notNull()
     .references(() => tenants.id),
   type: mysqlEnum("mutation_type", ["credit", "debit"]).notNull(),
-  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  amount: int("amount").notNull(),
   description: text("description"),
   referenceId: varchar("reference_id", { length: 128 }),
   createdAt: datetime("created_at")
@@ -251,7 +234,7 @@ export const withdrawals = mysqlTable("withdrawals", {
   tenantId: varchar("tenant_id", { length: 128 })
     .notNull()
     .references(() => tenants.id),
-  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  amount: int("amount").notNull(),
   bankInfoSnapshot: json("bank_info_snapshot"),
   status: mysqlEnum("withdrawal_status", [
     "pending",

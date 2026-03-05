@@ -71,7 +71,7 @@ export const invoiceService = {
     if (input.amount && input.type !== "full") {
       invoiceAmount = input.amount;
     } else {
-      invoiceAmount = Number(order.totalAmount);
+      invoiceAmount = order.totalAmount;
     }
 
     const platformFee = env.PLATFORM_FEE;
@@ -89,7 +89,7 @@ export const invoiceService = {
 
     const mayarItems = items.map((item) => ({
       quantity: item.quantity,
-      rate: Number(item.priceAtTime),
+      rate: item.priceAtTime,
       description: item.productName,
     }));
 
@@ -126,8 +126,8 @@ export const invoiceService = {
       tenantId,
       orderId,
       type: input.type,
-      amount: String(invoiceAmount),
-      platformFee: String(platformFee),
+      amount: invoiceAmount,
+      platformFee,
       mayarPaymentLink: mayarResponse.data.link,
       mayarTransactionId: mayarResponse.data.transactionId,
       mayarInvoiceId: mayarResponse.data.id,

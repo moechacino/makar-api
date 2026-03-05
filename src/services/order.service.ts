@@ -149,7 +149,7 @@ export const orderService = {
     let subtotal = 0;
     const itemsWithPrice = input.items.map((item) => {
       const product = productMap.get(item.productId)!;
-      const price = Number(product.sellPrice);
+      const price = product.sellPrice;
       subtotal += price * item.quantity;
       return { ...item, priceAtTime: price };
     });
@@ -163,10 +163,10 @@ export const orderService = {
       customerId: input.customerId,
       eventDate: input.eventDate ? new Date(input.eventDate) : null,
       deliveryAddress: input.deliveryAddress ?? null,
-      subtotal: String(subtotal),
-      shippingFee: String(input.shippingFee),
-      tax: String(input.tax),
-      totalAmount: String(totalAmount),
+      subtotal,
+      shippingFee: input.shippingFee,
+      tax: input.tax,
+      totalAmount,
       paymentType: input.paymentType,
       status: "draft",
     });
@@ -175,7 +175,7 @@ export const orderService = {
       orderId,
       productId: item.productId,
       quantity: item.quantity,
-      priceAtTime: String(item.priceAtTime),
+      priceAtTime: item.priceAtTime,
     }));
 
     await db.insert(orderItems).values(orderItemValues);
@@ -210,12 +210,12 @@ export const orderService = {
     if (input.status !== undefined) updateData.status = input.status;
 
     if (input.shippingFee !== undefined || input.tax !== undefined) {
-      const shipping = input.shippingFee ?? Number(existing[0]!.shippingFee);
-      const tax = input.tax ?? Number(existing[0]!.tax);
-      const subtotal = Number(existing[0]!.subtotal);
-      updateData.shippingFee = String(shipping);
-      updateData.tax = String(tax);
-      updateData.totalAmount = String(subtotal + shipping + tax);
+      const shipping = input.shippingFee ?? existing[0]!.shippingFee;
+      const tax = input.tax ?? existing[0]!.tax;
+      const subtotal = existing[0]!.subtotal;
+      updateData.shippingFee = shipping;
+      updateData.tax = tax;
+      updateData.totalAmount = subtotal + shipping + tax;
     }
 
     await db
