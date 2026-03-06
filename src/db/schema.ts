@@ -135,6 +135,7 @@ export const orders = mysqlTable("orders", {
   shippingFee: int("shipping_fee").notNull().default(0),
   tax: int("tax").notNull().default(0),
   totalAmount: int("total_amount").notNull().default(0),
+  dpAmount: int("dp_amount"),
   paymentType: mysqlEnum("payment_type", ["full", "termin"])
     .notNull()
     .default("full"),

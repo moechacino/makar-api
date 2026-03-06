@@ -635,6 +635,7 @@ List all orders for the current tenant, sorted by newest first.
       "tax": 0,
       "totalAmount": 375000,
       "paymentType": "full",
+      "dpAmount": null,
       "status": "draft",
       "createdAt": "2026-03-04T10:00:00.000Z",
       "invoices": [
@@ -678,6 +679,7 @@ Get order detail including items and customer info.
     "shippingFee": 25000,
     "tax": 0,
     "totalAmount": 375000,
+    "dpAmount": null,
     "paymentType": "full",
     "status": "draft",
     "customer": {
@@ -727,15 +729,16 @@ Create a new order. Order ID is auto-generated with format `ORD-YYYYMMDD-NNN`.
 
 **Request Body:**
 
-| Field             | Type   | Required | Default  | Description                           |
-| ----------------- | ------ | -------- | -------- | ------------------------------------- |
-| `customerId`      | string | Yes      | —        | Customer UUID                         |
-| `eventDate`       | string | No       | `null`   | Event date (ISO 8601 string)          |
-| `deliveryAddress` | string | No       | `null`   | Delivery address                      |
-| `shippingFee`     | number | No       | `0`      | Shipping fee                          |
-| `tax`             | number | No       | `0`      | Tax amount                            |
-| `paymentType`     | enum   | No       | `"full"` | `"full"` or `"termin"` (installments) |
-| `items`           | array  | Yes      | —        | Min 1 item (see below)                |
+| Field             | Type   | Required | Default  | Description                                                   |
+| ----------------- | ------ | -------- | -------- | ------------------------------------------------------------- |
+| `customerId`      | string | Yes      | —        | Customer UUID                                                 |
+| `eventDate`       | string | No       | `null`   | Event date (ISO 8601 string)                                  |
+| `deliveryAddress` | string | No       | `null`   | Delivery address                                              |
+| `shippingFee`     | number | No       | `0`      | Shipping fee                                                  |
+| `tax`             | number | No       | `0`      | Tax amount                                                    |
+| `paymentType`     | enum   | No       | `"full"` | `"full"` or `"termin"` (installments)                         |
+| `dpAmount`        | number | No       | `null`   | DP amount (required if termin, must be > 0 and < totalAmount) |
+| `items`           | array  | Yes      | —        | Min 1 item (see below)                                        |
 
 **`items` array:**
 
@@ -753,7 +756,8 @@ Create a new order. Order ID is auto-generated with format `ORD-YYYYMMDD-NNN`.
   "deliveryAddress": "Jl. Sudirman No. 10",
   "shippingFee": 25000,
   "tax": 0,
-  "paymentType": "full",
+  "paymentType": "termin",
+  "dpAmount": 500000,
   "items": [
     { "productId": "uuid-nasi-box", "quantity": 10 },
     { "productId": "uuid-paket-a", "quantity": 5 }
@@ -772,6 +776,8 @@ Create a new order. Order ID is auto-generated with format `ORD-YYYYMMDD-NNN`.
     "shippingFee": 25000,
     "tax": 0,
     "totalAmount": 975000,
+    "dpAmount": 500000,
+    "paymentType": "termin",
     "status": "draft"
   }
 }

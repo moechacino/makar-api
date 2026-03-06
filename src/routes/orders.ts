@@ -12,6 +12,7 @@ const createOrderSchema = z.object({
   shippingFee: z.number().min(0).default(0),
   tax: z.number().min(0).default(0),
   paymentType: z.enum(["full", "termin"]).default("full"),
+  dpAmount: z.number().int().min(1).optional(),
   items: z
     .array(
       z.object({

@@ -15,6 +15,7 @@ interface CreateOrderInput {
   shippingFee: number;
   tax: number;
   paymentType: "full" | "termin";
+  dpAmount?: number;
   items: { productId: string; quantity: number }[];
 }
 
@@ -66,6 +67,7 @@ export const orderService = {
         tax: orders.tax,
         totalAmount: orders.totalAmount,
         paymentType: orders.paymentType,
+        dpAmount: orders.dpAmount,
         status: orders.status,
         createdAt: orders.createdAt,
       })
@@ -222,6 +224,21 @@ export const orderService = {
     const orderId = await generateOrderId();
     const accessToken = crypto.randomUUID().replace(/-/g, "");
 
+    // Validate dpAmount for termin payments
+    const dpAmount =
+      input.paymentType === "termin" ? (input.dpAmount ?? null) : null;
+    if (input.paymentType === "termin" && dpAmount !== null) {
+      if (dpAmount <= 0) {
+        throw { status: 400, message: "Jumlah DP harus lebih dari 0" };
+      }
+      if (dpAmount >= totalAmount) {
+        throw {
+          status: 400,
+          message: `Jumlah DP harus kurang dari total pesanan (Rp ${totalAmount.toLocaleString("id-ID")})`,
+        };
+      }
+    }
+
     await db.insert(orders).values({
       id: orderId,
       accessToken,
@@ -233,6 +250,7 @@ export const orderService = {
       shippingFee: input.shippingFee,
       tax: input.tax,
       totalAmount,
+      dpAmount,
       paymentType: input.paymentType,
       status: "draft",
     });
@@ -253,6 +271,8 @@ export const orderService = {
       shippingFee: input.shippingFee,
       tax: input.tax,
       totalAmount,
+      dpAmount,
+      paymentType: input.paymentType,
       status: "draft" as const,
     };
   },
@@ -327,6 +347,7 @@ export const orderService = {
         tax: orders.tax,
         totalAmount: orders.totalAmount,
         paymentType: orders.paymentType,
+        dpAmount: orders.dpAmount,
         status: orders.status,
         createdAt: orders.createdAt,
       })
