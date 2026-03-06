@@ -625,6 +625,7 @@ List all orders for the current tenant, sorted by newest first.
   "data": [
     {
       "id": "ORD-20260304-001",
+      "accessToken": "a1b2c3d4e5f6...",
       "customerId": "uuid",
       "customerName": "PT Maju Jaya",
       "eventDate": "2026-03-15T00:00:00.000Z",
@@ -655,6 +656,7 @@ Get order detail including items and customer info.
 {
   "data": {
     "id": "ORD-20260304-001",
+    "accessToken": "a1b2c3d4e5f6...",
     "tenantId": "uuid",
     "customerId": "uuid",
     "eventDate": "2026-03-15T00:00:00.000Z",

@@ -56,6 +56,7 @@ export const orderService = {
     return db
       .select({
         id: orders.id,
+        accessToken: orders.accessToken,
         customerId: orders.customerId,
         customerName: customers.name,
         eventDate: orders.eventDate,
