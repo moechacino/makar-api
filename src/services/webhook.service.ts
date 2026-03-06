@@ -66,9 +66,14 @@ export const webhookService = {
         [invoice.id],
       );
 
-      // 2. Update order status
-      let newOrderStatus = "processing";
-      if (invoice.type === "pelunasan") {
+      // 2. Update order status based on invoice type
+      let newOrderStatus: string;
+      if (invoice.type === "dp") {
+        newOrderStatus = "dp_paid";
+      } else if (invoice.type === "full") {
+        newOrderStatus = "fully_paid";
+      } else {
+        // pelunasan
         newOrderStatus = "completed";
       }
 

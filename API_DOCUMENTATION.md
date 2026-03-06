@@ -594,21 +594,46 @@ Order lifecycle management with auto-generated sequential IDs.
 
 #### Order Status Flow
 
+**Full Payment Flow:**
+
 ```
-draft → waiting_dp → processing → delivered → waiting_payment → completed
-  │                                                                  │
-  └──────────────────────── cancelled ◄──────────────────────────────┘
+draft → waiting_payment → fully_paid → processing → delivered → completed
 ```
 
-| Status            | Description                                   |
-| ----------------- | --------------------------------------------- |
-| `draft`           | Order created, not yet invoiced               |
-| `waiting_dp`      | DP invoice generated, awaiting payment        |
-| `processing`      | Payment received (DP or full), being prepared |
-| `delivered`       | Order has been delivered                      |
-| `waiting_payment` | Full payment invoice generated, awaiting      |
-| `completed`       | All payments received, order complete         |
-| `cancelled`       | Order cancelled                               |
+**Termin (DP) Payment Flow:**
+
+```
+draft → waiting_dp → dp_paid → processing → delivered → completed
+                                                  │
+                                    (generate pelunasan invoice)
+                                                  │
+                                    pelunasan paid → completed
+```
+
+| Status            | Description                                                     |
+| ----------------- | --------------------------------------------------------------- |
+| `draft`           | Order created, not yet invoiced                                 |
+| `waiting_dp`      | DP invoice generated, awaiting DP payment                       |
+| `waiting_payment` | Full invoice generated, awaiting payment                        |
+| `dp_paid`         | DP invoice paid, ready for kitchen                              |
+| `fully_paid`      | Full invoice paid, ready for kitchen                            |
+| `processing`      | Kitchen is preparing the order                                  |
+| `delivered`       | Order has been delivered (can generate pelunasan for DP orders) |
+| `completed`       | All payments received and order complete                        |
+| `cancelled`       | Order cancelled                                                 |
+
+**Status Transitions:**
+
+| Trigger                     | From                   | To                |
+| --------------------------- | ---------------------- | ----------------- |
+| Generate DP invoice         | `draft`                | `waiting_dp`      |
+| Generate Full invoice       | `draft`                | `waiting_payment` |
+| DP invoice paid (webhook)   | `waiting_dp`           | `dp_paid`         |
+| Full invoice paid (webhook) | `waiting_payment`      | `fully_paid`      |
+| Kitchen starts (manual)     | `dp_paid`/`fully_paid` | `processing`      |
+| Order delivered (manual)    | `processing`           | `delivered`       |
+| Pelunasan paid (webhook)    | `delivered`            | `completed`       |
+| Manual complete             | `delivered`            | `completed`       |
 
 ---
 
@@ -922,26 +947,30 @@ Generate a payment invoice (and Mayar payment link) for a specific order.
 
 **Request Body:**
 
-| Field         | Type   | Required | Default  | Description                                   |
-| ------------- | ------ | -------- | -------- | --------------------------------------------- |
-| `type`        | enum   | No       | `"full"` | `"dp"`, `"pelunasan"`, or `"full"`            |
-| `amount`      | number | No       | —        | Custom amount (used for DP / pelunasan types) |
-| `redirectUrl` | string | No       | —        | Redirect URL after payment (valid URL)        |
+| Field         | Type   | Required | Default  | Description                            |
+| ------------- | ------ | -------- | -------- | -------------------------------------- |
+| `type`        | enum   | No       | `"full"` | `"dp"`, `"pelunasan"`, or `"full"`     |
+| `redirectUrl` | string | No       | —        | Redirect URL after payment (valid URL) |
 
 **Invoice Types:**
 
-| Type        | Description                              | Amount Behavior          |
-| ----------- | ---------------------------------------- | ------------------------ |
-| `full`      | Full payment                             | Uses order `totalAmount` |
-| `dp`        | Down payment (installment first payment) | Uses custom `amount`     |
-| `pelunasan` | Final settlement payment                 | Uses custom `amount`     |
+| Type        | Description                              | Amount Behavior                         |
+| ----------- | ---------------------------------------- | --------------------------------------- |
+| `full`      | Full payment                             | Uses order `totalAmount`                |
+| `dp`        | Down payment (installment first payment) | Uses order `dpAmount`                   |
+| `pelunasan` | Final settlement payment                 | Auto-calculates remaining unpaid amount |
+
+> **Note:** Amounts are automatically determined from order data. No `amount` field is needed in the request.
+>
+> - `full`: blocked if any invoice already exists
+> - `dp`: requires `dpAmount` to be set on the order, blocked if any invoice already exists
+> - `pelunasan`: auto-calculates remaining amount, blocked if already fully paid
 
 **Example Request (DP):**
 
 ```json
 {
   "type": "dp",
-  "amount": 200000,
   "redirectUrl": "https://myapp.com/payment-success"
 }
 ```
@@ -1236,7 +1265,10 @@ Only `payment.received` events with `data.status: "SUCCESS"` are processed. All 
 **Processing Steps (ACID Transaction):**
 
 1. Update invoice status → `paid`
-2. Update order status → `processing` (or `completed` for `pelunasan`)
+2. Update order status:
+   - `dp` invoice → `dp_paid`
+   - `full` invoice → `fully_paid`
+   - `pelunasan` invoice → `completed`
 3. Credit tenant wallet balance (amount minus platform fee)
 4. Record wallet mutation (credit)
 
@@ -1250,7 +1282,7 @@ Only `payment.received` events with `data.status: "SUCCESS"` are processed. All 
     "orderId": "ORD-20260304-001",
     "netAmount": 373000,
     "platformFee": 2000,
-    "newOrderStatus": "processing"
+    "newOrderStatus": "dp_paid"
   }
 }
 ```

@@ -12,7 +12,6 @@ import { env } from "../config/env";
 
 interface GenerateInvoiceInput {
   type: "dp" | "pelunasan" | "full";
-  amount?: number;
   redirectUrl?: string;
 }
 
@@ -86,6 +85,13 @@ export const invoiceService = {
     let invoiceAmount: number;
 
     if (input.type === "full") {
+      // Full: only from draft, no existing invoices
+      if (order.status !== "draft") {
+        throw {
+          status: 400,
+          message: "Invoice full hanya bisa dibuat saat status pesanan draft",
+        };
+      }
       if (totalPaid > 0 || totalPending > 0) {
         throw {
           status: 400,
@@ -95,33 +101,44 @@ export const invoiceService = {
       }
       invoiceAmount = order.totalAmount;
     } else if (input.type === "dp") {
-      if (!input.amount) {
+      // DP: only from draft, requires dpAmount
+      if (order.status !== "draft") {
         throw {
           status: 400,
-          message: "Jumlah DP wajib diisi",
+          message: "Invoice DP hanya bisa dibuat saat status pesanan draft",
         };
       }
-      if (input.amount <= 0) {
+      if (!order.dpAmount) {
         throw {
           status: 400,
-          message: "Jumlah DP harus lebih dari 0",
+          message:
+            "Jumlah DP belum ditentukan pada pesanan. Silakan update pesanan dengan dpAmount terlebih dahulu.",
         };
       }
-      if (input.amount >= order.totalAmount) {
+      if (totalPaid > 0 || totalPending > 0) {
         throw {
           status: 400,
-          message: `Jumlah DP harus kurang dari total pesanan (Rp ${order.totalAmount.toLocaleString("id-ID")})`,
+          message:
+            "Sudah ada invoice sebelumnya. Gunakan tipe pelunasan untuk sisa pembayaran.",
         };
       }
-      if (input.amount > remainingAmount) {
-        throw {
-          status: 400,
-          message: `Jumlah DP melebihi sisa yang belum dibayar (Rp ${remainingAmount.toLocaleString("id-ID")})`,
-        };
-      }
-      invoiceAmount = input.amount;
+      invoiceAmount = order.dpAmount;
     } else {
-      // pelunasan — auto-calculate remaining
+      // Pelunasan: only from delivered, termin orders only
+      if (order.status !== "delivered") {
+        throw {
+          status: 400,
+          message:
+            "Invoice pelunasan hanya bisa dibuat setelah pesanan dikirim (status delivered)",
+        };
+      }
+      if (order.paymentType !== "termin") {
+        throw {
+          status: 400,
+          message:
+            "Invoice pelunasan hanya untuk pesanan dengan pembayaran termin/DP",
+        };
+      }
       if (remainingAmount <= 0) {
         throw {
           status: 400,

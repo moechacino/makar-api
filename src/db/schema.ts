@@ -142,9 +142,11 @@ export const orders = mysqlTable("orders", {
   status: mysqlEnum("status", [
     "draft",
     "waiting_dp",
+    "waiting_payment",
+    "dp_paid",
+    "fully_paid",
     "processing",
     "delivered",
-    "waiting_payment",
     "completed",
     "cancelled",
   ])

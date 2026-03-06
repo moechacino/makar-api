@@ -29,15 +29,7 @@ const updateOrderSchema = z.object({
   shippingFee: z.number().min(0).optional(),
   tax: z.number().min(0).optional(),
   status: z
-    .enum([
-      "draft",
-      "waiting_dp",
-      "processing",
-      "delivered",
-      "waiting_payment",
-      "completed",
-      "cancelled",
-    ])
+    .enum(["processing", "delivered", "completed", "cancelled"])
     .optional(),
 });
 

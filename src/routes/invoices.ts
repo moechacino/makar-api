@@ -7,7 +7,6 @@ const invoiceRoutes = new Hono();
 
 const generateInvoiceSchema = z.object({
   type: z.enum(["dp", "pelunasan", "full"]).default("full"),
-  amount: z.number().min(1).optional(),
   redirectUrl: z.string().url().optional(),
 });
 
