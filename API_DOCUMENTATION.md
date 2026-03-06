@@ -630,13 +630,26 @@ List all orders for the current tenant, sorted by newest first.
       "customerName": "PT Maju Jaya",
       "eventDate": "2026-03-15T00:00:00.000Z",
       "deliveryAddress": "Jl. Sudirman No. 10",
-      "subtotal": "350000.00",
-      "shippingFee": "25000.00",
-      "tax": "0.00",
-      "totalAmount": "375000.00",
+      "subtotal": 350000,
+      "shippingFee": 25000,
+      "tax": 0,
+      "totalAmount": 375000,
       "paymentType": "full",
       "status": "draft",
-      "createdAt": "2026-03-04T10:00:00.000Z"
+      "createdAt": "2026-03-04T10:00:00.000Z",
+      "invoices": [
+        {
+          "id": "uuid",
+          "orderId": "ORD-20260304-001",
+          "type": "full",
+          "amount": 375000,
+          "status": "paid",
+          "paymentLink": "https://pay.mayar.club/...",
+          "createdAt": "2026-03-04T10:05:00.000Z"
+        }
+      ],
+      "totalPaid": 375000,
+      "remainingAmount": 0
     }
   ]
 }
@@ -661,10 +674,10 @@ Get order detail including items and customer info.
     "customerId": "uuid",
     "eventDate": "2026-03-15T00:00:00.000Z",
     "deliveryAddress": "Jl. Sudirman No. 10",
-    "subtotal": "350000.00",
-    "shippingFee": "25000.00",
-    "tax": "0.00",
-    "totalAmount": "375000.00",
+    "subtotal": 350000,
+    "shippingFee": 25000,
+    "tax": 0,
+    "totalAmount": 375000,
     "paymentType": "full",
     "status": "draft",
     "customer": {
@@ -680,9 +693,22 @@ Get order detail including items and customer info.
         "productName": "Nasi Box Premium",
         "productType": "satuan",
         "quantity": 10,
-        "priceAtTime": "35000.00"
+        "priceAtTime": 35000
       }
-    ]
+    ],
+    "invoices": [
+      {
+        "id": "uuid",
+        "orderId": "ORD-20260304-001",
+        "type": "full",
+        "amount": 375000,
+        "status": "paid",
+        "paymentLink": "https://pay.mayar.club/...",
+        "createdAt": "2026-03-04T10:05:00.000Z"
+      }
+    ],
+    "totalPaid": 375000,
+    "remainingAmount": 0
   }
 }
 ```

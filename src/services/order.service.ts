@@ -53,7 +53,7 @@ async function generateOrderId(): Promise<string> {
 
 export const orderService = {
   async list(tenantId: string) {
-    return db
+    const allOrders = await db
       .select({
         id: orders.id,
         accessToken: orders.accessToken,
@@ -73,6 +73,42 @@ export const orderService = {
       .leftJoin(customers, eq(orders.customerId, customers.id))
       .where(eq(orders.tenantId, tenantId))
       .orderBy(sql`${orders.createdAt} DESC`);
+
+    const orderIds = allOrders.map((o) => o.id);
+    if (orderIds.length === 0) return [];
+
+    const allInvoices = await db
+      .select({
+        id: invoices.id,
+        orderId: invoices.orderId,
+        type: invoices.type,
+        amount: invoices.amount,
+        status: invoices.status,
+        paymentLink: invoices.mayarPaymentLink,
+        createdAt: invoices.createdAt,
+      })
+      .from(invoices)
+      .where(eq(invoices.tenantId, tenantId));
+
+    const invoiceMap = new Map<string, typeof allInvoices>();
+    for (const inv of allInvoices) {
+      const list = invoiceMap.get(inv.orderId) ?? [];
+      list.push(inv);
+      invoiceMap.set(inv.orderId, list);
+    }
+
+    return allOrders.map((order) => {
+      const orderInvoices = invoiceMap.get(order.id) ?? [];
+      const totalPaid = orderInvoices
+        .filter((inv) => inv.status === "paid")
+        .reduce((sum, inv) => sum + inv.amount, 0);
+      return {
+        ...order,
+        invoices: orderInvoices,
+        totalPaid,
+        remainingAmount: order.totalAmount - totalPaid,
+      };
+    });
   },
 
   async getById(tenantId: string, orderId: string) {
@@ -105,10 +141,29 @@ export const orderService = {
       .where(eq(customers.id, orderResult[0]!.customerId))
       .limit(1);
 
+    const orderInvoices = await db
+      .select({
+        id: invoices.id,
+        type: invoices.type,
+        amount: invoices.amount,
+        status: invoices.status,
+        paymentLink: invoices.mayarPaymentLink,
+        createdAt: invoices.createdAt,
+      })
+      .from(invoices)
+      .where(eq(invoices.orderId, orderId));
+
+    const totalPaid = orderInvoices
+      .filter((inv) => inv.status === "paid")
+      .reduce((sum, inv) => sum + inv.amount, 0);
+
     return {
       ...orderResult[0],
       customer: customer[0] ?? null,
       items,
+      invoices: orderInvoices,
+      totalPaid,
+      remainingAmount: orderResult[0]!.totalAmount - totalPaid,
     };
   },
 
