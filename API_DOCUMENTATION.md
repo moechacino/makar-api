@@ -1179,8 +1179,13 @@ Get order details with customer info, items, invoices (with payment links), and 
     "tax": 0,
     "totalAmount": 375000,
     "paymentType": "termin",
+    "dpAmount": 200000,
     "status": "waiting_dp",
     "createdAt": "2026-03-05T10:00:00.000Z",
+    "tenant": {
+      "name": "Katering Ibu Sari",
+      "logoUrl": "http://localhost:3000/uploads/logos/uuid.jpg"
+    },
     "customer": {
       "name": "PT Maju Jaya",
       "phone": "08123456789",

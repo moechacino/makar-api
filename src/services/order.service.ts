@@ -5,6 +5,7 @@ import {
   products,
   customers,
   invoices,
+  tenants,
 } from "../db/schema";
 import { eq, and, sql } from "drizzle-orm";
 
@@ -340,6 +341,7 @@ export const orderService = {
       .select({
         id: orders.id,
         accessToken: orders.accessToken,
+        tenantId: orders.tenantId,
         eventDate: orders.eventDate,
         deliveryAddress: orders.deliveryAddress,
         subtotal: orders.subtotal,
@@ -376,6 +378,15 @@ export const orderService = {
       .where(eq(orders.id, orderId))
       .limit(1);
 
+    const tenantResult = await db
+      .select({
+        name: tenants.name,
+        logoUrl: tenants.logoUrl,
+      })
+      .from(tenants)
+      .where(eq(tenants.id, order.tenantId))
+      .limit(1);
+
     const items = await db
       .select({
         productName: products.name,
@@ -407,6 +418,7 @@ export const orderService = {
     return {
       ...order,
       accessToken: undefined,
+      tenant: tenantResult[0] ?? null,
       customer: customer[0] ?? null,
       items,
       invoices: orderInvoices,
