@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { serveStatic } from "hono/bun";
 import { env } from "./config/env";
 import { authMiddleware } from "./middleware/auth";
 
@@ -13,6 +14,7 @@ import invoiceRoutes from "./routes/invoices";
 import walletRoutes from "./routes/wallet";
 import webhookRoutes from "./routes/webhooks";
 import reportRoutes from "./routes/reports";
+import settingsRoutes from "./routes/settings";
 
 const app = new Hono();
 
@@ -46,6 +48,9 @@ app.route("/api/webhooks", webhookRoutes);
 import publicRoutes from "./routes/public";
 app.route("/api/public", publicRoutes);
 
+// Static files - logo uploads
+app.use("/uploads/*", serveStatic({ root: "./" }));
+
 // ============================================================
 // Protected Routes (Auth Required - Tenant Isolated)
 // ============================================================
@@ -55,6 +60,7 @@ app.use("/api/orders/*", authMiddleware);
 app.use("/api/invoices/*", authMiddleware);
 app.use("/api/wallet/*", authMiddleware);
 app.use("/api/reports/*", authMiddleware);
+app.use("/api/settings/*", authMiddleware);
 
 app.route("/api/products", productRoutes);
 app.route("/api/customers", customerRoutes);
@@ -62,6 +68,7 @@ app.route("/api/orders", orderRoutes);
 app.route("/api/invoices", invoiceRoutes);
 app.route("/api/wallet", walletRoutes);
 app.route("/api/reports", reportRoutes);
+app.route("/api/settings", settingsRoutes);
 
 // ============================================================
 // 404 Handler

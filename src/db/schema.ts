@@ -23,6 +23,7 @@ export const tenants = mysqlTable("tenants", {
   bankCode: varchar("bank_code", { length: 50 }),
   bankAccountNumber: varchar("bank_account_number", { length: 50 }),
   bankAccountName: varchar("bank_account_name", { length: 255 }),
+  logoUrl: varchar("logo_url", { length: 500 }),
   balance: int("balance").notNull().default(0),
   createdAt: datetime("created_at")
     .notNull()

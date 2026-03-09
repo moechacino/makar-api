@@ -5,6 +5,7 @@ import {
   orderItems,
   products,
   customers,
+  tenants,
 } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 import { mayarClient } from "../lib/mayar";
@@ -167,13 +168,19 @@ export const invoiceService = {
       description: item.productName,
     }));
 
+    const tenant = await db
+      .select({ name: tenants.name })
+      .from(tenants)
+      .where(eq(tenants.id, tenantId))
+      .limit(1);
+
     const finalItems =
       input.type !== "full"
         ? [
             {
               quantity: 1,
               rate: invoiceAmount,
-              description: `${input.type === "dp" ? "DP" : "Pelunasan"} - Order ${orderId}`,
+              description: `${input.type === "dp" ? "DP" : "Pelunasan"} - ${tenant[0]?.name || ""} - Order ${orderId}`,
             },
           ]
         : mayarItems;

@@ -23,6 +23,7 @@
   - [Wallet](#wallet)
   - [Webhooks](#webhooks)
   - [Reports](#reports)
+  - [Settings](#settings)
 - [Data Models](#data-models)
 - [Environment Variables](#environment-variables)
 
@@ -1359,21 +1360,215 @@ Only `payment.received` events with `data.status: "SUCCESS"` are processed. All 
 
 ---
 
+### Settings
+
+Manage tenant profile, logo, and user account settings.
+
+#### `GET /api/settings/tenant`
+
+Get current tenant information.
+
+**Auth Required:** Yes
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "name": "Katering Ibu Sari",
+    "slug": "katering-ibu-sari",
+    "bankCode": "014",
+    "bankAccountNumber": "1234567890",
+    "bankAccountName": "Sari Dewi",
+    "logoUrl": "http://localhost:3000/uploads/logos/uuid.jpg",
+    "createdAt": "2026-03-01T00:00:00.000Z",
+    "updatedAt": "2026-03-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+#### `PUT /api/settings/tenant`
+
+Update tenant information. All fields are optional.
+
+**Auth Required:** Yes
+
+**Request Body:**
+
+| Field               | Type   | Required | Description                                          |
+| ------------------- | ------ | -------- | ---------------------------------------------------- |
+| `name`              | string | No       | Business name (min 2 chars)                          |
+| `slug`              | string | No       | Unique URL slug (lowercase letters, digits, hyphens) |
+| `bankCode`          | string | No       | Bank code (e.g. `"014"` for BCA)                     |
+| `bankAccountNumber` | string | No       | Bank account number                                  |
+| `bankAccountName`   | string | No       | Account holder name                                  |
+
+**Example Request:**
+
+```json
+{
+  "name": "Katering Ibu Sari Premium",
+  "bankCode": "014",
+  "bankAccountNumber": "9876543210",
+  "bankAccountName": "Sari Dewi"
+}
+```
+
+**Response `200`:**
+
+```json
+{
+  "message": "Informasi tenant berhasil diperbarui",
+  "data": { "...updated tenant object..." }
+}
+```
+
+**Error Responses:**
+
+- `409` — Slug sudah digunakan oleh tenant lain
+
+---
+
+#### `POST /api/settings/tenant/logo`
+
+Upload or replace the tenant logo. Accepts `multipart/form-data`.
+
+**Auth Required:** Yes
+
+**Content-Type:** `multipart/form-data`
+
+**Form Fields:**
+
+| Field  | Type | Required | Description                                |
+| ------ | ---- | -------- | ------------------------------------------ |
+| `logo` | file | Yes      | Image file (JPG, PNG, WebP, GIF — max 2MB) |
+
+**Response `200`:**
+
+```json
+{
+  "message": "Logo berhasil diunggah",
+  "data": {
+    "logoUrl": "http://localhost:3000/uploads/logos/uuid.jpg"
+  }
+}
+```
+
+**Error Responses:**
+
+- `400` — File logo wajib diunggah / Format tidak didukung / Ukuran > 2MB
+
+> **Note:** The logo is served as a static file at the returned `logoUrl`. Uploading a new logo replaces the previous file.
+
+---
+
+#### `GET /api/settings/profile`
+
+Get current user profile.
+
+**Auth Required:** Yes
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "tenantId": "uuid",
+    "name": "Admin Sari",
+    "email": "admin@katering-sari.com",
+    "role": "owner",
+    "createdAt": "2026-03-01T00:00:00.000Z",
+    "updatedAt": "2026-03-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+#### `PUT /api/settings/profile`
+
+Update user name and/or email.
+
+**Auth Required:** Yes
+
+**Request Body:**
+
+| Field   | Type   | Required | Description                |
+| ------- | ------ | -------- | -------------------------- |
+| `name`  | string | No       | Display name (min 2 chars) |
+| `email` | string | No       | New email address          |
+
+**Response `200`:**
+
+```json
+{
+  "message": "Profil berhasil diperbarui",
+  "data": { "...updated user object..." }
+}
+```
+
+**Error Responses:**
+
+- `409` — Email sudah digunakan oleh akun lain
+
+---
+
+#### `PUT /api/settings/profile/password`
+
+Change the current user’s password.
+
+**Auth Required:** Yes
+
+**Request Body:**
+
+| Field             | Type   | Required | Description                        |
+| ----------------- | ------ | -------- | ---------------------------------- |
+| `currentPassword` | string | Yes      | Existing password for verification |
+| `newPassword`     | string | Yes      | New password (min 6 chars)         |
+
+**Example Request:**
+
+```json
+{
+  "currentPassword": "oldpassword123",
+  "newPassword": "newpassword456"
+}
+```
+
+**Response `200`:**
+
+```json
+{
+  "message": "Password berhasil diubah"
+}
+```
+
+**Error Responses:**
+
+- `400` — Password saat ini tidak sesuai
+
+---
+
 ## Data Models
 
 ### Tenant
 
-| Field               | Type          | Description               |
-| ------------------- | ------------- | ------------------------- |
-| `id`                | varchar(128)  | Primary key (UUID)        |
-| `name`              | varchar(255)  | Business name             |
-| `slug`              | varchar(255)  | Unique URL slug           |
-| `bankCode`          | varchar(50)   | Bank code for withdrawals |
-| `bankAccountNumber` | varchar(50)   | Bank account number       |
-| `bankAccountName`   | varchar(255)  | Bank account holder name  |
-| `balance`           | decimal(15,2) | Current wallet balance    |
-| `createdAt`         | datetime      | Creation timestamp        |
-| `updatedAt`         | datetime      | Last update timestamp     |
+| Field               | Type         | Description                  |
+| ------------------- | ------------ | ---------------------------- |
+| `id`                | varchar(128) | Primary key (UUID)           |
+| `name`              | varchar(255) | Business name                |
+| `slug`              | varchar(255) | Unique URL slug              |
+| `bankCode`          | varchar(50)  | Bank code for withdrawals    |
+| `bankAccountNumber` | varchar(50)  | Bank account number          |
+| `bankAccountName`   | varchar(255) | Bank account holder name     |
+| `logoUrl`           | varchar(500) | Public URL of tenant logo    |
+| `balance`           | int          | Current wallet balance (IDR) |
+| `createdAt`         | datetime     | Creation timestamp           |
+| `updatedAt`         | datetime     | Last update timestamp        |
 
 ### User
 
@@ -1513,5 +1708,7 @@ Only `payment.received` events with `data.status: "SUCCESS"` are processed. All 
 | `MAYAR_WEBHOOK_TOKEN` | (empty)                        | Webhook token for verifying Mayar callbacks (from Mayar dashboard) |
 | `PLATFORM_FEE`        | `2000`                         | Platform fee per invoice (in IDR)                                  |
 | `PORT`                | `3000`                         | Server port                                                        |
+| `BASE_URL`            | `http://localhost:3000`        | Public base URL (used to build logo URLs)                          |
+| `UPLOAD_DIR`          | `uploads`                      | Directory for storing uploaded files                               |
 
 > **Note:** Bun automatically loads `.env` files — no dotenv package needed.

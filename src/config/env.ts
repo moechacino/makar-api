@@ -17,4 +17,6 @@ export const env = {
   PLATFORM_FEE: Number(process.env.PLATFORM_FEE) || 2000,
 
   PORT: Number(process.env.PORT) || 3000,
+  BASE_URL: getEnvVar("BASE_URL", "http://localhost:3000"),
+  UPLOAD_DIR: getEnvVar("UPLOAD_DIR", "uploads"),
 };
