@@ -162,17 +162,17 @@ export const invoiceService = {
       .innerJoin(products, eq(orderItems.productId, products.id))
       .where(eq(orderItems.orderId, orderId));
 
-    const mayarItems = items.map((item) => ({
-      quantity: item.quantity,
-      rate: item.priceAtTime,
-      description: item.productName,
-    }));
-
     const tenant = await db
       .select({ name: tenants.name })
       .from(tenants)
       .where(eq(tenants.id, tenantId))
       .limit(1);
+
+    const mayarItems = items.map((item) => ({
+      quantity: item.quantity,
+      rate: item.priceAtTime,
+      description: `${tenant[0]?.name || ""} - ${item.productName}`,
+    }));
 
     const finalItems =
       input.type !== "full"
@@ -180,7 +180,7 @@ export const invoiceService = {
             {
               quantity: 1,
               rate: invoiceAmount,
-              description: `${input.type === "dp" ? "DP" : "Pelunasan"} - ${tenant[0]?.name || ""} - Order ${orderId}`,
+              description: `${tenant[0]?.name || ""} - (${input.type === "dp" ? "DP" : "Pelunasan"}) Order ${orderId}`,
             },
           ]
         : mayarItems;
