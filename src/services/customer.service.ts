@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { customers } from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
 
 interface CreateCustomerInput {
   name: string;
@@ -55,6 +55,26 @@ export const customerService = {
   },
 
   async create(tenantId: string, input: CreateCustomerInput) {
+    if (input.phone) {
+      const phoneConflict = await db
+        .select({ id: customers.id })
+        .from(customers)
+        .where(
+          and(
+            eq(customers.tenantId, tenantId),
+            eq(customers.phone, input.phone),
+          ),
+        )
+        .limit(1);
+
+      if (phoneConflict.length > 0) {
+        throw {
+          status: 409,
+          message: `Nomor telepon ${input.phone} sudah terdaftar untuk pelanggan lain`,
+        };
+      }
+    }
+
     const customerId = crypto.randomUUID();
 
     await db.insert(customers).values({
@@ -88,7 +108,29 @@ export const customerService = {
 
     const updateData: Record<string, any> = { updatedAt: new Date() };
     if (input.name !== undefined) updateData.name = input.name;
-    if (!input.phone) updateData.phone = input.phone;
+    if (input.phone !== undefined) {
+      if (input.phone) {
+        const phoneConflict = await db
+          .select({ id: customers.id })
+          .from(customers)
+          .where(
+            and(
+              eq(customers.tenantId, tenantId),
+              eq(customers.phone, input.phone),
+              ne(customers.id, customerId),
+            ),
+          )
+          .limit(1);
+
+        if (phoneConflict.length > 0) {
+          throw {
+            status: 409,
+            message: `Nomor telepon ${input.phone} sudah terdaftar untuk pelanggan lain`,
+          };
+        }
+      }
+      updateData.phone = input.phone;
+    }
     if (input.email !== undefined) updateData.email = input.email;
     if (input.defaultAddress !== undefined)
       updateData.defaultAddress = input.defaultAddress;
