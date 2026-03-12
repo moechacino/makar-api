@@ -27,6 +27,9 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(6, "Password baru minimal 6 karakter"),
 });
 
+// ─── Bank List ─────────────────────────────────────────────────────────────────
+settingsRoutes.get("/banks", settingsController.getBanks);
+
 // ─── Tenant Settings ──────────────────────────────────────────────────────────
 settingsRoutes.get("/tenant", settingsController.getTenant);
 settingsRoutes.put(

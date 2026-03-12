@@ -3,6 +3,13 @@ import { settingsService } from "../services/settings.service";
 import { getTenantId, getCurrentUser } from "../middleware/auth";
 
 export const settingsController = {
+  // ─── Banks ──────────────────────────────────────────────────────────────
+
+  getBanks(c: Context) {
+    const data = settingsService.getBankList();
+    return c.json({ data });
+  },
+
   // ─── Tenant ─────────────────────────────────────────────────────────────────
 
   async getTenant(c: Context) {

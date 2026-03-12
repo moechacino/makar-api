@@ -3,6 +3,9 @@ import { tenants, users } from "../db/schema";
 import { eq, and, ne } from "drizzle-orm";
 import { env } from "../config/env";
 import path from "path";
+import bankCodes from "../db/bank_code.json";
+
+const validBankCodes = new Set(bankCodes.map((b) => b.kode));
 
 interface UpdateTenantInput {
   name?: string;
@@ -23,6 +26,12 @@ interface ChangePasswordInput {
 }
 
 export const settingsService = {
+  // ─── Bank Codes ──────────────────────────────────────────────────────────────
+
+  getBankList() {
+    return bankCodes.map((b) => ({ code: b.kode, name: b.nama_bank }));
+  },
+
   // ─── Tenant ─────────────────────────────────────────────────────────────────
 
   async getTenantInfo(tenantId: string) {
@@ -61,6 +70,19 @@ export const settingsService = {
         throw {
           status: 409,
           message: `Slug "${input.slug}" sudah digunakan oleh tenant lain`,
+        };
+      }
+    }
+
+    if (
+      input.bankCode !== undefined &&
+      input.bankCode !== null &&
+      input.bankCode !== ""
+    ) {
+      if (!validBankCodes.has(input.bankCode)) {
+        throw {
+          status: 400,
+          message: `Kode bank "${input.bankCode}" tidak valid. Gunakan GET /api/settings/banks untuk melihat daftar kode bank yang tersedia.`,
         };
       }
     }

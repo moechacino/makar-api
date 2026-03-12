@@ -1367,7 +1367,28 @@ Only `payment.received` events with `data.status: "SUCCESS"` are processed. All 
 
 ### Settings
 
-Manage tenant profile, logo, and user account settings.
+Manage tenant profile, logo, bank account, and user account settings.
+
+#### `GET /api/settings/banks`
+
+Get the full list of supported bank codes. Use these codes when updating tenant bank information.
+
+**Auth Required:** Yes
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    { "code": "014", "name": "Bank BCA" },
+    { "code": "008", "name": "Bank Mandiri" },
+    { "code": "009", "name": "Bank BNI" },
+    { "code": "002", "name": "Bank BRI" }
+  ]
+}
+```
+
+---
 
 #### `GET /api/settings/tenant`
 
@@ -1403,13 +1424,13 @@ Update tenant information. All fields are optional.
 
 **Request Body:**
 
-| Field               | Type   | Required | Description                                          |
-| ------------------- | ------ | -------- | ---------------------------------------------------- |
-| `name`              | string | No       | Business name (min 2 chars)                          |
-| `slug`              | string | No       | Unique URL slug (lowercase letters, digits, hyphens) |
-| `bankCode`          | string | No       | Bank code (e.g. `"014"` for BCA)                     |
-| `bankAccountNumber` | string | No       | Bank account number                                  |
-| `bankAccountName`   | string | No       | Account holder name                                  |
+| Field               | Type   | Required | Description                                                     |
+| ------------------- | ------ | -------- | --------------------------------------------------------------- |
+| `name`              | string | No       | Business name (min 2 chars)                                     |
+| `slug`              | string | No       | Unique URL slug (lowercase letters, digits, hyphens)            |
+| `bankCode`          | string | No       | Bank code — must be a valid code from `GET /api/settings/banks` |
+| `bankAccountNumber` | string | No       | Bank account number                                             |
+| `bankAccountName`   | string | No       | Account holder name                                             |
 
 **Example Request:**
 
@@ -1433,6 +1454,7 @@ Update tenant information. All fields are optional.
 
 **Error Responses:**
 
+- `400` — Kode bank tidak valid
 - `409` — Slug sudah digunakan oleh tenant lain
 
 ---
