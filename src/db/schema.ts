@@ -230,7 +230,25 @@ export const walletMutations = mysqlTable("wallet_mutations", {
 });
 
 // ============================================================
-// 9. WITHDRAWALS (Permintaan Pencairan Dana)
+// 9. SUPPORT USERS (Platform-level App Support Accounts)
+// ============================================================
+export const supportUsers = mysqlTable("support_users", {
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  createdAt: datetime("created_at")
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: datetime("updated_at")
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// ============================================================
+// 10. WITHDRAWALS (Permintaan Pencairan Dana)
 // ============================================================
 export const withdrawals = mysqlTable("withdrawals", {
   id: varchar("id", { length: 128 })

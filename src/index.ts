@@ -4,6 +4,9 @@ import { logger } from "hono/logger";
 import { serveStatic } from "hono/bun";
 import { env } from "./config/env";
 import { authMiddleware } from "./middleware/auth";
+import { db } from "./db";
+import { supportUsers } from "./db/schema";
+import { eq } from "drizzle-orm";
 
 // Routes
 import authRoutes from "./routes/auth";
@@ -15,6 +18,7 @@ import walletRoutes from "./routes/wallet";
 import webhookRoutes from "./routes/webhooks";
 import reportRoutes from "./routes/reports";
 import settingsRoutes from "./routes/settings";
+import supportRoutes from "./routes/support";
 
 const app = new Hono();
 
@@ -70,6 +74,9 @@ app.route("/api/wallet", walletRoutes);
 app.route("/api/reports", reportRoutes);
 app.route("/api/settings", settingsRoutes);
 
+// Support (platform-level) — auth handled per-route in the router
+app.route("/api/support", supportRoutes);
+
 // ============================================================
 // 404 Handler
 // ============================================================
@@ -88,6 +95,39 @@ app.onError((err, c) => {
 // ============================================================
 // Start Server
 // ============================================================
+
+// Seed default support user on startup
+(async () => {
+  try {
+    const existing = await db
+      .select({ id: supportUsers.id })
+      .from(supportUsers)
+      .where(eq(supportUsers.email, env.SUPPORT_DEFAULT_EMAIL))
+      .limit(1);
+
+    if (existing.length === 0) {
+      const passwordHash = await Bun.password.hash(
+        env.SUPPORT_DEFAULT_PASSWORD,
+        {
+          algorithm: "bcrypt",
+          cost: 10,
+        },
+      );
+      await db.insert(supportUsers).values({
+        id: crypto.randomUUID(),
+        name: env.SUPPORT_DEFAULT_NAME,
+        email: env.SUPPORT_DEFAULT_EMAIL,
+        passwordHash,
+      });
+      console.log(
+        `✅ Default support user created: ${env.SUPPORT_DEFAULT_EMAIL}`,
+      );
+    }
+  } catch (err) {
+    console.error("Failed to seed support user:", err);
+  }
+})();
+
 console.log(`🚀 Makar API running on http://localhost:${env.PORT}`);
 
 export default {

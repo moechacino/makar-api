@@ -24,6 +24,7 @@
   - [Webhooks](#webhooks)
   - [Reports](#reports)
   - [Settings](#settings)
+  - [App Support](#app-support)
 - [Data Models](#data-models)
 - [Environment Variables](#environment-variables)
 
@@ -1592,6 +1593,219 @@ Change the current user’s password.
 
 ---
 
+## App Support
+
+Platform-level endpoints for support staff to manage withdrawal requests across all tenants. Uses a **separate JWT** signed with `SUPPORT_JWT_SECRET`.
+
+### Support Auth
+
+#### `POST /api/support/auth/register`
+
+Create a new support account. Requires `X-Support-Secret` header matching `SUPPORT_REGISTER_SECRET` env var.
+
+**Auth Required:** No (guarded by secret header)
+
+**Headers:**
+
+| Header             | Description                          |
+| ------------------ | ------------------------------------ |
+| `X-Support-Secret` | Must match `SUPPORT_REGISTER_SECRET` |
+
+**Request Body:**
+
+| Field      | Type   | Required | Description |
+| ---------- | ------ | -------- | ----------- |
+| `name`     | string | Yes      | Full name   |
+| `email`    | string | Yes      | Email       |
+| `password` | string | Yes      | Password    |
+
+**Response `201`:**
+
+```json
+{
+  "message": "Akun support berhasil dibuat",
+  "data": {
+    "id": "uuid",
+    "name": "Support Team",
+    "email": "support@makar.id"
+  }
+}
+```
+
+**Error Responses:**
+
+- `403` — X-Support-Secret tidak valid
+- `409` — Email sudah terdaftar
+
+---
+
+#### `POST /api/support/auth/login`
+
+Login as support user to get a support JWT.
+
+**Auth Required:** No
+
+**Request Body:**
+
+| Field      | Type   | Required | Description |
+| ---------- | ------ | -------- | ----------- |
+| `email`    | string | Yes      | Email       |
+| `password` | string | Yes      | Password    |
+
+**Response `200`:**
+
+```json
+{
+  "message": "Login berhasil",
+  "token": "<support-jwt>",
+  "user": {
+    "id": "uuid",
+    "name": "Support Team",
+    "email": "support@makar.id"
+  }
+}
+```
+
+**Error Responses:**
+
+- `401` — Email atau password salah
+
+---
+
+### Support Withdrawal Management
+
+All endpoints below require the support JWT in `Authorization: Bearer <token>`.
+
+#### `GET /api/support/withdrawals`
+
+List all withdrawal requests across all tenants with optional filters and pagination.
+
+**Auth Required:** Yes (support JWT)
+
+**Query Parameters:**
+
+| Parameter  | Type   | Description                                                      |
+| ---------- | ------ | ---------------------------------------------------------------- |
+| `status`   | string | Filter by status: `pending`, `processing`, `completed`, `failed` |
+| `tenantId` | string | Filter by specific tenant                                        |
+| `page`     | number | Page number (default: 1)                                         |
+| `limit`    | number | Items per page (default: 20)                                     |
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "amount": 500000,
+      "bankInfoSnapshot": {
+        "bankCode": "014",
+        "bankAccountNumber": "1234567890",
+        "bankAccountName": "Sari Dewi"
+      },
+      "status": "pending",
+      "disbursementId": null,
+      "createdAt": "2026-03-12T08:00:00.000Z",
+      "completedAt": null,
+      "tenantId": "uuid",
+      "tenantName": "Katering Ibu Sari",
+      "tenantSlug": "katering-ibu-sari"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 45,
+    "totalPages": 3
+  }
+}
+```
+
+---
+
+#### `GET /api/support/withdrawals/:id`
+
+Get detail of a single withdrawal request.
+
+**Auth Required:** Yes (support JWT)
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "amount": 500000,
+    "bankInfoSnapshot": {
+      "bankCode": "014",
+      "bankAccountNumber": "1234567890",
+      "bankAccountName": "Sari Dewi"
+    },
+    "status": "pending",
+    "disbursementId": null,
+    "createdAt": "2026-03-12T08:00:00.000Z",
+    "completedAt": null,
+    "tenantId": "uuid",
+    "tenantName": "Katering Ibu Sari",
+    "tenantSlug": "katering-ibu-sari"
+  }
+}
+```
+
+**Error Responses:**
+
+- `404` — Withdrawal tidak ditemukan
+
+---
+
+#### `PATCH /api/support/withdrawals/:id/status`
+
+Update the status of a withdrawal request. Follows a strict state machine.
+
+**Auth Required:** Yes (support JWT)
+
+**State Machine:**
+
+| Current Status | Allowed Transitions       |
+| -------------- | ------------------------- |
+| `pending`      | `processing`, `failed`    |
+| `processing`   | `completed`, `failed`     |
+| `completed`    | _(terminal — no changes)_ |
+| `failed`       | _(terminal — no changes)_ |
+
+**Request Body:**
+
+| Field            | Type   | Required | Description                                     |
+| ---------------- | ------ | -------- | ----------------------------------------------- |
+| `status`         | string | Yes      | New status: `processing`, `completed`, `failed` |
+| `disbursementId` | string | No       | External disbursement/transfer reference ID     |
+
+**Example Request:**
+
+```json
+{
+  "status": "completed",
+  "disbursementId": "TRF-20260312-001"
+}
+```
+
+**Response `200`:**
+
+```json
+{
+  "message": "Status withdrawal berhasil diperbarui",
+  "data": { "...updated withdrawal object with tenant info..." }
+}
+```
+
+**Error Responses:**
+
+- `400` — Transisi status tidak valid
+- `404` — Withdrawal tidak ditemukan
+
+---
+
 ## Data Models
 
 ### Tenant
@@ -1730,24 +1944,37 @@ Change the current user’s password.
 | `createdAt`        | datetime      | Creation timestamp                                     |
 | `completedAt`      | datetime      | Completion timestamp                                   |
 
+### SupportUser
+
+| Field          | Type         | Description                       |
+| -------------- | ------------ | --------------------------------- |
+| `id`           | varchar(128) | Primary key (cuid2)               |
+| `name`         | varchar(255) | Display name                      |
+| `email`        | varchar(255) | Email (unique across all support) |
+| `passwordHash` | varchar(255) | Bcrypt password hash              |
+| `createdAt`    | datetime     | Creation timestamp                |
+| `updatedAt`    | datetime     | Last update timestamp             |
+
 ---
 
 ## Environment Variables
 
-| Variable              | Default                        | Description                                                        |
-| --------------------- | ------------------------------ | ------------------------------------------------------------------ |
-| `DATABASE_HOST`       | `localhost`                    | MariaDB/MySQL host                                                 |
-| `DATABASE_PORT`       | `3306`                         | Database port                                                      |
-| `DATABASE_USER`       | `root`                         | Database user                                                      |
-| `DATABASE_PASSWORD`   | (empty)                        | Database password                                                  |
-| `DATABASE_NAME`       | `makar_db`                     | Database name                                                      |
-| `JWT_SECRET`          | `change-this-secret`           | Secret key for JWT signing                                         |
-| `MAYAR_API_KEY`       | (empty)                        | Mayar.id Master API Key                                            |
-| `MAYAR_BASE_URL`      | `https://api.mayar.club/hl/v1` | Mayar API base URL (sandbox)                                       |
-| `MAYAR_WEBHOOK_TOKEN` | (empty)                        | Webhook token for verifying Mayar callbacks (from Mayar dashboard) |
-| `PLATFORM_FEE`        | `2000`                         | Platform fee per invoice (in IDR)                                  |
-| `PORT`                | `3000`                         | Server port                                                        |
-| `BASE_URL`            | `http://localhost:3000`        | Public base URL (used to build logo URLs)                          |
-| `UPLOAD_DIR`          | `uploads`                      | Directory for storing uploaded files                               |
+| Variable                  | Default                        | Description                                                        |
+| ------------------------- | ------------------------------ | ------------------------------------------------------------------ |
+| `DATABASE_HOST`           | `localhost`                    | MariaDB/MySQL host                                                 |
+| `DATABASE_PORT`           | `3306`                         | Database port                                                      |
+| `DATABASE_USER`           | `root`                         | Database user                                                      |
+| `DATABASE_PASSWORD`       | (empty)                        | Database password                                                  |
+| `DATABASE_NAME`           | `makar_db`                     | Database name                                                      |
+| `JWT_SECRET`              | `change-this-secret`           | Secret key for JWT signing                                         |
+| `MAYAR_API_KEY`           | (empty)                        | Mayar.id Master API Key                                            |
+| `MAYAR_BASE_URL`          | `https://api.mayar.club/hl/v1` | Mayar API base URL (sandbox)                                       |
+| `MAYAR_WEBHOOK_TOKEN`     | (empty)                        | Webhook token for verifying Mayar callbacks (from Mayar dashboard) |
+| `PLATFORM_FEE`            | `2000`                         | Platform fee per invoice (in IDR)                                  |
+| `PORT`                    | `3000`                         | Server port                                                        |
+| `BASE_URL`                | `http://localhost:3000`        | Public base URL (used to build logo URLs)                          |
+| `UPLOAD_DIR`              | `uploads`                      | Directory for storing uploaded files                               |
+| `SUPPORT_JWT_SECRET`      | `change-this-support-secret`   | Secret key for support JWT signing                                 |
+| `SUPPORT_REGISTER_SECRET` | `change-this-register-secret`  | Secret header value for creating support accounts                  |
 
 > **Note:** Bun automatically loads `.env` files — no dotenv package needed.
