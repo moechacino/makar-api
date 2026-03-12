@@ -55,7 +55,12 @@ export const settingsService = {
       throw { status: 404, message: "Tenant tidak ditemukan" };
     }
 
-    return result[0]!;
+    const tenant = result[0]!;
+    const bankName = tenant.bankCode
+      ? (bankCodes.find((b) => b.kode === tenant.bankCode)?.nama_bank ?? null)
+      : null;
+
+    return { ...tenant, bankName };
   },
 
   async updateTenantInfo(tenantId: string, input: UpdateTenantInput) {

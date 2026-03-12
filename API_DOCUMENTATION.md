@@ -1405,6 +1405,7 @@ Get current tenant information.
     "name": "Katering Ibu Sari",
     "slug": "katering-ibu-sari",
     "bankCode": "014",
+    "bankName": "Bank BCA",
     "bankAccountNumber": "1234567890",
     "bankAccountName": "Sari Dewi",
     "logoUrl": "http://localhost:3000/uploads/logos/uuid.jpg",
@@ -1448,7 +1449,18 @@ Update tenant information. All fields are optional.
 ```json
 {
   "message": "Informasi tenant berhasil diperbarui",
-  "data": { "...updated tenant object..." }
+  "data": {
+    "id": "uuid",
+    "name": "Katering Ibu Sari Premium",
+    "slug": "katering-ibu-sari",
+    "bankCode": "014",
+    "bankName": "Bank BCA",
+    "bankAccountNumber": "9876543210",
+    "bankAccountName": "Sari Dewi",
+    "logoUrl": "http://localhost:3000/uploads/logos/uuid.jpg",
+    "createdAt": "2026-03-01T00:00:00.000Z",
+    "updatedAt": "2026-03-09T10:00:00.000Z"
+  }
 }
 ```
 
