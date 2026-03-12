@@ -85,7 +85,7 @@ export const walletService = {
       };
 
       await connection.query(
-        "INSERT INTO withdrawals (id, tenant_id, amount, bank_info_snapshot, status, created_at) VALUES (?, ?, ?, ?, 'pending', NOW())",
+        "INSERT INTO withdrawals (id, tenant_id, amount, bank_info_snapshot, withdrawal_status, created_at) VALUES (?, ?, ?, ?, 'pending', NOW())",
         [withdrawalId, tenantId, amount, JSON.stringify(bankSnapshot)],
       );
 
