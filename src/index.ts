@@ -22,10 +22,20 @@ import supportRoutes from "./routes/support";
 
 const app = new Hono();
 
+const allowedOrigins = ["http://localhost:3000", "https://makar.lanaksa.my.id"];
+
 // ============================================================
 // Global Middleware
 // ============================================================
-app.use("*", cors());
+app.use(
+  "*",
+  cors({
+    origin: (origin) => {
+      if (!origin) return "*";
+      return allowedOrigins.includes(origin) ? origin : null;
+    },
+  }),
+);
 app.use("*", logger());
 
 // ============================================================
