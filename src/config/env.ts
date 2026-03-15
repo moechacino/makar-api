@@ -31,4 +31,5 @@ export const env = {
   SUPPORT_DEFAULT_EMAIL: getEnvVar("SUPPORT_DEFAULT_EMAIL", "support@makar.id"),
   SUPPORT_DEFAULT_PASSWORD: getEnvVar("SUPPORT_DEFAULT_PASSWORD", "support123"),
   SUPPORT_DEFAULT_NAME: getEnvVar("SUPPORT_DEFAULT_NAME", "App Support"),
+  HOSTNAME: getEnvVar("HOSTNAME", "localhost"),
 };

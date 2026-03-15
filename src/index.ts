@@ -140,7 +140,10 @@ app.onError((err, c) => {
 
 console.log(`🚀 Makar API running on http://localhost:${env.PORT}`);
 
-export default {
-  port: env.PORT,
+Bun.serve({
+  port: env.PORT || 3001,
+  hostname: env.HOSTNAME,
   fetch: app.fetch,
-};
+});
+
+console.log(`🚀 Makar API benar-benar jalan di port: ${env.PORT || 3001}`);
